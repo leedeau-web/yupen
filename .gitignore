@@ -1,0 +1,36 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+venv/
+env/
+
+# 환경변수 (절대 커밋 금지)
+.env
+.env.local
+.env.*.local
+
+# 로그
+*.log
+backend/uvicorn.log
+backend/uvicorn_err.log
+
+# Node
+node_modules/
+frontend/dist/
+frontend/.vite/
+
+# 런타임 생성 데이터
+data/poll_history.json
+
+# Claude Code 로컬 설정
+**/.claude/settings.local.json
+**/.claude/
+
+# Vercel
+.vercel/
+
+# OS
+.DS_Store
+Thumbs.db
