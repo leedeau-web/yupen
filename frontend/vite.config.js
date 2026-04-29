@@ -9,7 +9,7 @@ export default defineConfig({
   ],
   server: {
     proxy: {
-      "/api": "http://localhost:8000",
+      "/api": "https://yupen-production.up.railway.app",
     },
   },
 })
