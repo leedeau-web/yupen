@@ -36,7 +36,7 @@ app.add_middleware(
 )
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-CSV_PATH          = Path(os.path.join(BASE_DIR, 'data', 'bukgu_gap.csv'))
+CSV_PATH          = os.path.join(BASE_DIR, 'data', 'bukgu_gap.csv')
 POLL_HISTORY_PATH = Path(os.path.join(BASE_DIR, 'data', 'poll_history.json'))
 CONTEXT_PATH      = Path(os.path.join(BASE_DIR, 'data', 'context.md'))
 
