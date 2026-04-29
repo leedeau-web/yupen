@@ -24,11 +24,13 @@ load_dotenv()
 
 app = FastAPI(title="유펜 (Yupen) API")
 
-_is_vercel = bool(os.getenv("VERCEL"))
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"] if _is_vercel else ["http://localhost:5173"],
-    allow_credentials=not _is_vercel,
+    allow_origins=[
+        "http://localhost:5173",
+        "https://yupen-7f5k.vercel.app",
+    ],
+    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -578,4 +580,4 @@ async def get_poll_history():
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("app:app", host="0.0.0.0", port=int(os.environ.get("PORT", "8000")), reload=False, log_level="info")
+    uvicorn.run("app:app", host="0.0.0.0", port=8080, reload=False, log_level="info")

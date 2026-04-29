@@ -24,11 +24,13 @@ load_dotenv()
 
 app = FastAPI(title="유펜 (Yupen) API")
 
-_is_vercel = bool(os.getenv("VERCEL"))
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"] if _is_vercel else ["http://localhost:5173"],
-    allow_credentials=not _is_vercel,
+    allow_origins=[
+        "http://localhost:5173",
+        "https://yupen-7f5k.vercel.app",
+    ],
+    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
