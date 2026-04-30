@@ -38,7 +38,7 @@ app.add_middleware(
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 CSV_PATH          = os.path.join(BASE_DIR, 'data', 'bukgu_gap.csv')
 POLL_HISTORY_PATH = Path(os.path.join(BASE_DIR, 'data', 'poll_history.json'))
-CONTEXT_PATH      = os.path.join(BASE_DIR, 'data', 'context.md')
+CONTEXT_PATH      = Path(BASE_DIR) / 'data' / 'context.md'
 
 client = AsyncAnthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
 
