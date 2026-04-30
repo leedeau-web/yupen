@@ -12,6 +12,15 @@ const COLORS = {
   무응답: "#9ca3af",
 };
 
+function DeltaBadge({ curr, prev }) {
+  const diff = Math.round(curr - prev);
+  if (diff > 0)
+    return <span style={{ color: "#22c55e" }} className="ml-1 font-normal">(+{diff}%p)</span>;
+  if (diff < 0)
+    return <span style={{ color: "#ef4444" }} className="ml-1 font-normal">({diff}%p)</span>;
+  return <span style={{ color: "#9ca3af" }} className="ml-1 font-normal">(±0)</span>;
+}
+
 export default function TrendTab() {
   const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -129,17 +138,28 @@ export default function TrendTab() {
             </tr>
           </thead>
           <tbody>
-            {history.map((h, i) => (
-              <tr key={i} className="border-b border-[var(--border)] last:border-0 hover:bg-[var(--code-bg)] transition-colors">
-                <td className="px-4 py-2.5 text-[var(--text-h)] font-medium">#{i + 1}</td>
-                <td className="px-4 py-2.5 text-[var(--text)]">{h.date}</td>
-                <td className="px-4 py-2.5 text-right text-[var(--text)]">{h.n}</td>
-                <td className="px-4 py-2.5 text-right font-semibold" style={{ color: COLORS.하정우 }}>{h.하정우}%</td>
-                <td className="px-4 py-2.5 text-right font-semibold" style={{ color: COLORS.한동훈 }}>{h.한동훈}%</td>
-                <td className="px-4 py-2.5 text-right font-semibold" style={{ color: COLORS.박민식 }}>{h.박민식}%</td>
-                <td className="px-4 py-2.5 text-right text-[var(--text)]">{h.무응답}%</td>
-              </tr>
-            ))}
+            {history.map((h, i) => {
+              const prev = i > 0 ? history[i - 1] : null;
+              return (
+                <tr key={i} className="border-b border-[var(--border)] last:border-0 hover:bg-[var(--code-bg)] transition-colors">
+                  <td className="px-4 py-2.5 text-[var(--text-h)] font-medium">#{i + 1}</td>
+                  <td className="px-4 py-2.5 text-[var(--text)]">{h.date}</td>
+                  <td className="px-4 py-2.5 text-right text-[var(--text)]">{h.n}</td>
+                  <td className="px-4 py-2.5 text-right font-semibold" style={{ color: COLORS.하정우 }}>
+                    {h.하정우}%{prev && <DeltaBadge curr={h.하정우} prev={prev.하정우} />}
+                  </td>
+                  <td className="px-4 py-2.5 text-right font-semibold" style={{ color: COLORS.한동훈 }}>
+                    {h.한동훈}%{prev && <DeltaBadge curr={h.한동훈} prev={prev.한동훈} />}
+                  </td>
+                  <td className="px-4 py-2.5 text-right font-semibold" style={{ color: COLORS.박민식 }}>
+                    {h.박민식}%{prev && <DeltaBadge curr={h.박민식} prev={prev.박민식} />}
+                  </td>
+                  <td className="px-4 py-2.5 text-right text-[var(--text)]">
+                    {h.무응답}%{prev && <DeltaBadge curr={h.무응답} prev={prev.무응답} />}
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>
