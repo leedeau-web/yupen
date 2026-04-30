@@ -4,6 +4,7 @@ const FILTER_OPTIONS = {
   성별: ["남", "여"],
   지지후보: ["하정우", "한동훈", "박민식", "미정"],
   정치성향: ["진보", "중도", "보수"],
+  지지강도: ["1", "2", "3", "4", "5"],
 };
 
 const CANDIDATE_BAR_COLORS = {
@@ -34,7 +35,7 @@ export default function FilterPanel({ filters, onChange, allVoters, filteredCoun
   };
 
   const reset = () => {
-    onChange({ 거주동: null, 연령대: null, 성별: null, 지지후보: null, 정치성향: null });
+    onChange({ 거주동: null, 연령대: null, 성별: null, 지지후보: null, 정치성향: null, 지지강도: null });
   };
 
   const candidateCounts = ["하정우", "한동훈", "박민식", "미정"].map((c) => ({

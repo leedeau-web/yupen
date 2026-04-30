@@ -391,6 +391,7 @@ def get_voters(
     성별: str | None = Query(None),
     지지후보: str | None = Query(None),
     정치성향: str | None = Query(None),
+    지지강도: int | None = Query(None),
 ):
     df = get_df().copy()
     if 거주동:
@@ -401,6 +402,8 @@ def get_voters(
         df = df[df["지지후보"] == 지지후보]
     if 정치성향:
         df = df[df["정치성향"] == 정치성향]
+    if 지지강도 is not None:
+        df = df[df["지지강도"] == 지지강도]
     if 연령대:
         age_map = {
             "20대": (20, 29), "30대": (30, 39), "40대": (40, 49),

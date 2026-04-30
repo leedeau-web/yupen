@@ -14,7 +14,7 @@ const TABS = [
   { id: "trend", label: "추이 그래프" },
 ];
 
-const EMPTY_FILTERS = { 거주동: null, 연령대: null, 성별: null, 지지후보: null, 정치성향: null };
+const EMPTY_FILTERS = { 거주동: null, 연령대: null, 성별: null, 지지후보: null, 정치성향: null, 지지강도: null };
 
 export default function App() {
   const [tab, setTab] = useState("voters");
