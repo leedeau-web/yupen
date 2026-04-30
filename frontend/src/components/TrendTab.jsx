@@ -394,12 +394,18 @@ export default function TrendTab() {
                     {h.무응답}%{prev && <DeltaBadge curr={h.무응답} prev={prev.무응답} />}
                   </td>
                   <td className="px-4 py-2.5 text-right">
-                    <button
-                      onClick={() => setDetailEntry({ entry: h, index: i })}
-                      className="text-[10px] text-[var(--accent)] hover:opacity-70 cursor-pointer whitespace-nowrap"
-                    >
-                      상세보기
-                    </button>
+                    {h.voter_logs.length > 0 ? (
+                      <button
+                        onClick={() => setDetailEntry({ entry: h, index: i })}
+                        className="text-[10px] text-[var(--accent)] hover:opacity-70 cursor-pointer whitespace-nowrap"
+                      >
+                        상세보기
+                      </button>
+                    ) : (
+                      <span className="text-[10px] text-[var(--text)] opacity-30 whitespace-nowrap select-none">
+                        로그없음
+                      </span>
+                    )}
                   </td>
                 </tr>
               );

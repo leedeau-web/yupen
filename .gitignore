@@ -21,8 +21,8 @@ node_modules/
 frontend/dist/
 frontend/.vite/
 
-# 런타임 생성 데이터
-data/poll_history.json
+# 런타임 생성 데이터 (git 트래킹 제외 — 재배포 시 덮어씌워짐 방지)
+backend/data/poll_history.json
 
 # Claude Code 로컬 설정
 **/.claude/settings.local.json
