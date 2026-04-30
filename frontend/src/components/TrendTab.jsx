@@ -333,18 +333,24 @@ export default function TrendTab() {
                 }}
               />
               <Legend wrapperStyle={{ fontSize: 12 }} />
-              {/* 실제 여론조사 기준선 — 미디어토마토 2026-04-24~25 */}
+              {/* 실제 여론조사 기준선 — 여론조사꽃 2026-04-26~27 (3차, 최신) */}
               <ReferenceLine
-                y={43.8}
+                y={44.0}
                 stroke={COLORS.하정우}
                 strokeDasharray="5 5"
-                label={{ value: "실제 43.8%", fill: COLORS.하정우, fontSize: 10, position: "right" }}
+                label={{ value: "실제 44.0%", fill: COLORS.하정우, fontSize: 10, position: "right" }}
               />
               <ReferenceLine
-                y={35.9}
+                y={22.9}
                 stroke={COLORS.한동훈}
                 strokeDasharray="5 5"
-                label={{ value: "실제 35.9%", fill: COLORS.한동훈, fontSize: 10, position: "right" }}
+                label={{ value: "실제 22.9%", fill: COLORS.한동훈, fontSize: 10, position: "right" }}
+              />
+              <ReferenceLine
+                y={24.5}
+                stroke={COLORS.박민식}
+                strokeDasharray="5 5"
+                label={{ value: "실제 24.5%", fill: COLORS.박민식, fontSize: 10, position: "right" }}
               />
               <Line type="monotone" dataKey="하정우" stroke={COLORS.하정우} strokeWidth={2.5} dot={{ r: 5 }} activeDot={{ r: 7 }} />
               <Line type="monotone" dataKey="한동훈" stroke={COLORS.한동훈} strokeWidth={2.5} dot={{ r: 5 }} activeDot={{ r: 7 }} />
@@ -354,7 +360,7 @@ export default function TrendTab() {
           </ResponsiveContainer>
         </div>
         <p className="text-[10px] text-[var(--text)] opacity-50 mt-3">
-          점선: 미디어토마토 2026-04-24~25 실제 여론조사 기준값
+          점선: 여론조사꽃 2026-04-26~27 (3차, n=503) 실제 여론조사 기준값
         </p>
       </div>
 
