@@ -545,12 +545,25 @@ async def run_poll(req: PollRequest):
     )
     duration = round(time.time() - start_time, 1)
 
-    # 집계
+    # 집계 + 유권자별 응답 로그 수집
     counts = {"하정우": 0, "한동훈": 0, "박민식": 0, "무응답": 0}
     total_cost = 0.0
-    for r in poll_results:
-        counts[r["choice"]] = counts.get(r["choice"], 0) + 1
+    voter_logs = []
+    for (_, voter_row), r in zip(sample.iterrows(), poll_results):
+        choice = r["choice"]
+        counts[choice] = counts.get(choice, 0) + 1
         total_cost += r.get("cost", 0.0)
+        original = str(voter_row["지지후보"])
+        voter_logs.append({
+            "거주동": str(voter_row["거주동"]),
+            "연령대": get_age_band(int(voter_row["나이"])),
+            "성별": str(voter_row["성별"]),
+            "정치성향": str(voter_row["정치성향"]),
+            "지지강도": int(voter_row["지지강도"]),
+            "원래지지": original,
+            "최종응답": choice,
+            "이탈": original != "미정" and original != choice,
+        })
 
     actual_size = len(poll_results)
     results = {
@@ -568,7 +581,8 @@ async def run_poll(req: PollRequest):
         "sample_size": actual_size,
         "results": results,
         "moe": moe,
-        "total_cost": round(total_cost, 4)
+        "total_cost": round(total_cost, 4),
+        "voter_logs": voter_logs,
     }
     
     history = load_poll_history()
