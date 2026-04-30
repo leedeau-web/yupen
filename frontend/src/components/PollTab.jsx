@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { API_BASE } from "../config";
+import { appendRound } from "../utils/historyStorage";
 
 const SAMPLE_SIZES = [50, 100, 200, 500, 1000];
 
@@ -10,8 +11,8 @@ const CANDIDATE_COLORS = {
   무응답: { bar: "bg-gray-400", text: "text-gray-400", border: "border-gray-400" },
 };
 
-// 미디어토마토 2026-04-24~25 기준치
-const REFERENCE = { 하정우: 43.8, 한동훈: 35.9, 박민식: 11.6, 무응답: 8.7 };
+// 여론조사꽃 2026-04-26~27 기준치 (3차, 최신)
+const REFERENCE = { 하정우: 44.0, 한동훈: 22.9, 박민식: 24.5, 무응답: 7.0 };
 
 function CostBadge({ n }) {
   const est = (n * 0.003).toFixed(2);
@@ -97,7 +98,7 @@ function ResultChart({ result }) {
       <div className="flex items-center gap-3 text-[10px] text-[var(--text)] pt-2 border-t border-[var(--border)]">
         <span className="flex items-center gap-1">
           <span className="inline-block w-3 h-0.5 bg-white/70 border-t border-white/70" />
-          기준선: 미디어토마토 2026-04-24~25
+          기준선: 여론조사꽃 2026-04-26~27 (3차)
         </span>
         <span className="flex items-center gap-1">
           <span className="inline-block w-4 h-3 border border-white/40 bg-transparent" />
@@ -147,6 +148,7 @@ export default function PollTab() {
       const data = await res.json();
       setProgress(100);
       setResult(data);
+      appendRound(data);
     } catch (e) {
       setError(e.message);
     } finally {

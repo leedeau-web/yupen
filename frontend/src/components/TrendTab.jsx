@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { API_BASE } from "../config";
+import { loadHistory, saveHistory, normalizeServerHistory } from "../utils/historyStorage";
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
   ReferenceLine, ResponsiveContainer,
@@ -259,26 +260,43 @@ export default function TrendTab() {
   const [loading, setLoading] = useState(true);
   const [detailEntry, setDetailEntry] = useState(null);
 
-  const load = () => {
+  const format = (raw) =>
+    raw.map((h, i) => ({
+      label: `#${i + 1} (n=${h.sample_size})`,
+      date: h.date,
+      하정우: h.results?.하정우?.pct ?? 0,
+      한동훈: h.results?.한동훈?.pct ?? 0,
+      박민식: h.results?.박민식?.pct ?? 0,
+      무응답: h.results?.무응답?.pct ?? 0,
+      n: h.sample_size,
+      moe: h.moe,
+      question: h.question,
+      voter_logs: h.log ?? h.voter_logs ?? [],
+    }));
+
+  const load = async () => {
     setLoading(true);
-    fetch(`${API_BASE}/api/poll-history`)
-      .then(r => r.json())
-      .then(data => {
-        const formatted = data.map((h, i) => ({
-          label: `#${i + 1} (n=${h.sample_size})`,
-          date: h.date,
-          하정우: h.results?.하정우?.pct ?? 0,
-          한동훈: h.results?.한동훈?.pct ?? 0,
-          박민식: h.results?.박민식?.pct ?? 0,
-          무응답: h.results?.무응답?.pct ?? 0,
-          n: h.sample_size,
-          moe: h.moe,
-          question: h.question,
-          voter_logs: h.voter_logs ?? [],
-        }));
-        setHistory(formatted);
-        setLoading(false);
-      });
+    let raw = loadHistory();
+
+    // 마이그레이션: localStorage 비어있으면 서버에서 한 번만 가져와 저장
+    if (raw.length === 0) {
+      try {
+        const res = await fetch(`${API_BASE}/api/poll-history`);
+        if (res.ok) {
+          const serverData = await res.json();
+          if (Array.isArray(serverData) && serverData.length > 0) {
+            raw = normalizeServerHistory(serverData);
+            saveHistory(raw);
+            console.log(`[yupen] 서버→localStorage 마이그레이션 완료 (${raw.length}회차)`);
+          }
+        }
+      } catch {
+        // 서버 오프라인이어도 앱 크래시 없이 빈 배열로 유지
+      }
+    }
+
+    setHistory(format(raw));
+    setLoading(false);
   };
 
   useEffect(() => { load(); }, []);
