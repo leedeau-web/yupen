@@ -2,18 +2,19 @@ import asyncio
 import json
 import math
 import os
+import random
+import sqlite3
 import time
 import traceback
 import uuid
 import logging
 
-# 에러 로그를 터미널에 강제로 찍히게 합니다.
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
 from datetime import datetime
 from pathlib import Path
 
-import pandas as pd
 from anthropic import AsyncAnthropic
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException, Query
@@ -35,22 +36,89 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-CSV_PATH          = os.path.join(BASE_DIR, 'backend', 'data', 'bukgu_gap.csv')
+BASE_DIR          = os.path.dirname(os.path.abspath(__file__))
+DB_PATH           = Path(os.path.join(BASE_DIR, 'backend', 'data', 'personas.db'))
 POLL_HISTORY_PATH = Path(os.path.join(BASE_DIR, 'backend', 'data', 'poll_history.json'))
 CONTEXT_PATH      = Path(os.path.join(BASE_DIR, 'backend', 'data', 'context.md'))
 
 client = AsyncAnthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
 
-_df: pd.DataFrame | None = None
 _context: str | None = None
 
 
-def get_df() -> pd.DataFrame:
-    global _df
-    if _df is None:
-        _df = pd.read_csv(CSV_PATH, encoding="utf-8-sig")
-    return _df
+# ─── DB 헬퍼 ─────────────────────────────────────────────────────────────────
+
+def get_db() -> sqlite3.Connection:
+    conn = sqlite3.connect(str(DB_PATH), check_same_thread=False)
+    conn.row_factory = sqlite3.Row
+    return conn
+
+
+AGE_BAND_RANGES: dict[str, tuple[int, int]] = {
+    "20대":    (18, 29),
+    "30대":    (30, 39),
+    "40대":    (40, 49),
+    "50대":    (50, 59),
+    "60대":    (60, 69),
+    "70대이상": (70, 99),
+}
+
+_STRATA_CACHE: list[dict] | None = None
+_STRATA_TOTAL: int = 0
+
+
+def _load_strata() -> tuple[list[dict], int]:
+    global _STRATA_CACHE, _STRATA_TOTAL
+    if _STRATA_CACHE is None:
+        conn = get_db()
+        rows = conn.execute("""
+            SELECT 거주동,
+                CASE
+                    WHEN 나이 < 30 THEN '20대'
+                    WHEN 나이 < 40 THEN '30대'
+                    WHEN 나이 < 50 THEN '40대'
+                    WHEN 나이 < 60 THEN '50대'
+                    WHEN 나이 < 70 THEN '60대'
+                    ELSE '70대이상'
+                END AS age_band,
+                COUNT(*) AS cnt
+            FROM voters
+            GROUP BY 거주동, age_band
+            ORDER BY 거주동, age_band
+        """).fetchall()
+        conn.close()
+        _STRATA_CACHE = [dict(r) for r in rows]
+        _STRATA_TOTAL = sum(r["cnt"] for r in _STRATA_CACHE)
+    return _STRATA_CACHE, _STRATA_TOTAL
+
+
+def stratified_sample(n: int) -> list[dict]:
+    """동별·연령별 비율을 유지하는 층화추출."""
+    strata, total_pop = _load_strata()
+    result: list[dict] = []
+    allocated = 0
+    conn = get_db()
+
+    for i, s in enumerate(strata):
+        if i == len(strata) - 1:
+            k = n - allocated
+        else:
+            k = round(n * s["cnt"] / total_pop)
+            allocated += k
+        if k <= 0:
+            continue
+        age_min, age_max = AGE_BAND_RANGES[s["age_band"]]
+        rows = conn.execute("""
+            SELECT * FROM voters
+            WHERE 거주동 = ? AND 나이 >= ? AND 나이 <= ?
+            ORDER BY RANDOM()
+            LIMIT ?
+        """, (s["거주동"], age_min, age_max, k)).fetchall()
+        result.extend(dict(r) for r in rows)
+
+    conn.close()
+    random.shuffle(result)
+    return result
 
 
 def get_context() -> str:
@@ -60,7 +128,7 @@ def get_context() -> str:
     return _context
 
 
-# ─── Pydantic Models ─────────────────────────────────────────────────────────
+# ─── Pydantic Models ──────────────────────────────────────────────────────────
 
 class SurveyRequest(BaseModel):
     voter_id: int
@@ -98,6 +166,12 @@ class BatchSurveyStats(BaseModel):
 class PollRequest(BaseModel):
     question: str
     sample_size: int
+
+
+class PollUpdateRequest(BaseModel):
+    version: int
+    date: str
+    results: dict  # { overall: {하정우: 35, 한동훈: 34, ...}, byAge: {...}, byDong: {...} }
 
 
 # ─── Claude Helpers ───────────────────────────────────────────────────────────
@@ -230,6 +304,7 @@ SURVEY_SYSTEM_PROMPT = """당신은 전화 여론조사 시뮬레이터입니다
 5. 이재명 대통령 국정지지도가 투표 선택의 핵심 갈림길입니다:
    - 이재명 "잘함" 성향 유권자(진보·민주 지지층): 하정우 63% 지지 → 강하게 지지 표현
    - 이재명 "못함" 성향 유권자(보수층): 박민식 53% / 한동훈 39% → 보수 후보 결집
+   - 최신 다자대결 지지율: 하정우 34.3% / 한동훈 33.5% / 박민식 21.5% (5/1~3 한길리서치 5차, n=584) — 하정우·한동훈 오차범위 내 초박빙
 6. 연령대별 분리투표 패턴을 반영합니다:
    - 40~50대: 부산시장 전재수 + 국회의원 하정우 동반 지지 가능성 높음
    - 60대: 부산시장·국회의원 분리투표 성향 — "시장은 몰라도 의원은 고민 중" 뉘앙스 자연스럽게
@@ -258,7 +333,7 @@ POLL_SYSTEM_PROMPT = """당신은 전화 여론조사 응답자입니다. 주어
 - 그 외에는 지지후보 그대로 답변"""
 
 
-async def call_claude_survey(voter: pd.Series, question: str) -> dict:
+async def call_claude_survey(voter: dict, question: str) -> dict:
     speech = SPEECH_GUIDE.get(voter["말투특성"], "")
     intensity = int(voter["지지강도"])
     candidate = voter["지지후보"]
@@ -303,7 +378,7 @@ async def call_claude_survey(voter: pd.Series, question: str) -> dict:
         return {"response": raw, "emotion": "중립", "persuasibility": 0.5}
 
 
-async def call_claude_poll(voter: pd.Series, question: str) -> dict:
+async def call_claude_poll(voter: dict, question: str) -> dict:
     """갤럽식 여론조사용 단순 후보 선택 호출"""
     intensity = int(voter["지지강도"])
     candidate = voter["지지후보"]
@@ -335,7 +410,6 @@ async def call_claude_poll(voter: pd.Series, question: str) -> dict:
         if choice not in ["하정우", "한동훈", "박민식", "무응답"]:
             choice = "무응답"
 
-        # 실제 비용 계산
         u = msg.usage
         cost = (
             getattr(u, "input_tokens", 0) * 5 / 1_000_000
@@ -346,7 +420,6 @@ async def call_claude_poll(voter: pd.Series, question: str) -> dict:
         return {"choice": choice, "cost": cost}
 
     except Exception:
-        # API 실패 시 페르소나 지지후보 그대로 사용
         fallback = candidate if candidate in ["하정우", "한동훈", "박민식"] else "무응답"
         return {"choice": fallback, "cost": 0.0}
 
@@ -380,7 +453,8 @@ def root():
 
 @app.get("/health")
 def health():
-    return {"status": "ok"}
+    db_ok = DB_PATH.exists()
+    return {"status": "ok", "db": str(DB_PATH), "db_exists": db_ok}
 
 
 @app.get("/api/voters")
@@ -390,35 +464,45 @@ def get_voters(
     성별: str | None = Query(None),
     지지후보: str | None = Query(None),
     정치성향: str | None = Query(None),
+    limit: int = Query(200, ge=1, le=2000),
 ):
-    df = get_df().copy()
+    query = "SELECT * FROM voters WHERE 1=1"
+    params: list = []
+
     if 거주동:
-        df = df[df["거주동"] == 거주동]
+        query += " AND 거주동=?"
+        params.append(거주동)
     if 성별:
-        df = df[df["성별"] == 성별]
+        query += " AND 성별=?"
+        params.append(성별)
     if 지지후보:
-        df = df[df["지지후보"] == 지지후보]
+        query += " AND 지지후보=?"
+        params.append(지지후보)
     if 정치성향:
-        df = df[df["정치성향"] == 정치성향]
-    if 연령대:
-        age_map = {
-            "20대": (20, 29), "30대": (30, 39), "40대": (40, 49),
-            "50대": (50, 59), "60대": (60, 69), "70대이상": (70, 99),
-        }
-        if 연령대 in age_map:
-            lo, hi = age_map[연령대]
-            df = df[(df["나이"] >= lo) & (df["나이"] <= hi)]
-    return {"total": len(df), "voters": df.to_dict(orient="records")}
+        query += " AND 정치성향=?"
+        params.append(정치성향)
+    if 연령대 and 연령대 in AGE_BAND_RANGES:
+        lo, hi = AGE_BAND_RANGES[연령대]
+        query += " AND 나이>=? AND 나이<=?"
+        params.extend([lo, hi])
+
+    count_query = query.replace("SELECT *", "SELECT COUNT(*)")
+    conn = get_db()
+    total = conn.execute(count_query, params).fetchone()[0]
+    rows = conn.execute(query + f" ORDER BY RANDOM() LIMIT {limit}", params).fetchall()
+    conn.close()
+    return {"total": total, "returned": len(rows), "voters": [dict(r) for r in rows]}
 
 
 @app.post("/api/survey", response_model=SurveyResponse)
 async def survey(req: SurveyRequest):
     try:
-        df = get_df()
-        row = df[df["id"] == req.voter_id]
-        if row.empty:
+        conn = get_db()
+        row = conn.execute("SELECT * FROM voters WHERE id=?", (req.voter_id,)).fetchone()
+        conn.close()
+        if not row:
             raise HTTPException(status_code=404, detail="유권자를 찾을 수 없습니다.")
-        voter = row.iloc[0]
+        voter = dict(row)
         result = await call_claude_survey(voter, req.question)
         return SurveyResponse(
             voter_id=req.voter_id,
@@ -435,30 +519,41 @@ async def survey(req: SurveyRequest):
 
 @app.post("/api/batch-survey", response_model=BatchSurveyStats)
 async def batch_survey(req: BatchSurveyRequest):
-    df = get_df().copy()
+    query = "SELECT * FROM voters WHERE 1=1"
+    params: list = []
+
     if req.거주동:
-        df = df[df["거주동"] == req.거주동]
+        query += " AND 거주동=?"
+        params.append(req.거주동)
     if req.성별:
-        df = df[df["성별"] == req.성별]
+        query += " AND 성별=?"
+        params.append(req.성별)
     if req.지지후보:
-        df = df[df["지지후보"] == req.지지후보]
+        query += " AND 지지후보=?"
+        params.append(req.지지후보)
     if req.정치성향:
-        df = df[df["정치성향"] == req.정치성향]
-    if req.연령대:
-        age_map = {
-            "20대": (20, 29), "30대": (30, 39), "40대": (40, 49),
-            "50대": (50, 59), "60대": (60, 69), "70대이상": (70, 99),
-        }
-        if req.연령대 in age_map:
-            lo, hi = age_map[req.연령대]
-            df = df[(df["나이"] >= lo) & (df["나이"] <= hi)]
-    df = df.head(req.max_voters)
-    if df.empty:
+        query += " AND 정치성향=?"
+        params.append(req.정치성향)
+    if req.연령대 and req.연령대 in AGE_BAND_RANGES:
+        lo, hi = AGE_BAND_RANGES[req.연령대]
+        query += " AND 나이>=? AND 나이<=?"
+        params.extend([lo, hi])
+
+    query += f" ORDER BY RANDOM() LIMIT {req.max_voters}"
+
+    conn = get_db()
+    rows = conn.execute(query, params).fetchall()
+    conn.close()
+
+    if not rows:
         raise HTTPException(status_code=404, detail="조건에 맞는 유권자가 없습니다.")
+
+    voters_list = [dict(r) for r in rows]
+    voters_by_id = {v["id"]: v for v in voters_list}
 
     semaphore = asyncio.Semaphore(5)
 
-    async def bounded_call(voter: pd.Series) -> SurveyResponse:
+    async def bounded_call(voter: dict) -> SurveyResponse:
         async with semaphore:
             result = await call_claude_survey(voter, req.question)
             return SurveyResponse(
@@ -470,7 +565,7 @@ async def batch_survey(req: BatchSurveyRequest):
             )
 
     results: list[SurveyResponse] = await asyncio.gather(
-        *[bounded_call(row) for _, row in df.iterrows()]
+        *[bounded_call(v) for v in voters_list]
     )
 
     candidate_reactions: dict[str, dict] = {}
@@ -479,7 +574,7 @@ async def batch_survey(req: BatchSurveyRequest):
     total_persuasibility = 0.0
 
     for r in results:
-        voter_row = df[df["id"] == r.voter_id].iloc[0]
+        voter_row = voters_by_id[r.voter_id]
         candidate = str(voter_row["지지후보"])
         total_persuasibility += r.persuasibility
         if r.persuasibility >= 0.6:
@@ -518,30 +613,22 @@ async def batch_survey(req: BatchSurveyRequest):
 
 @app.post("/api/poll")
 async def run_poll(req: PollRequest):
-    """갤럽식 여론조사: N명 랜덤 샘플링 후 병렬 Claude 호출"""
+    """갤럽식 여론조사: 층화추출(동별·연령별 비율 유지) 후 병렬 Claude 호출"""
     if req.sample_size < 1 or req.sample_size > 2000:
         raise HTTPException(status_code=400, detail="sample_size는 1~2000 사이여야 합니다.")
 
-    df = get_df()
-    n = req.sample_size
-
-    # 200명 초과 시 복원 추출 (모집단 대표 시뮬레이션)
-    replace = n > len(df)
-    sample = df.sample(n=n, replace=replace).reset_index(drop=True)
+    sample = stratified_sample(req.sample_size)
 
     semaphore = asyncio.Semaphore(10)
 
-    async def bounded_poll(voter: pd.Series) -> dict:
+    async def bounded_poll(voter: dict) -> dict:
         async with semaphore:
             return await call_claude_poll(voter, req.question)
 
     start_time = time.time()
-    poll_results = await asyncio.gather(
-        *[bounded_poll(row) for _, row in sample.iterrows()]
-    )
+    poll_results = await asyncio.gather(*[bounded_poll(v) for v in sample])
     duration = round(time.time() - start_time, 1)
 
-    # 집계
     counts = {"하정우": 0, "한동훈": 0, "박민식": 0, "무응답": 0}
     total_cost = 0.0
     for r in poll_results:
@@ -554,7 +641,6 @@ async def run_poll(req: PollRequest):
         for c, cnt in counts.items()
     }
 
-    # 95% 신뢰수준 최대 오차범위
     moe = round(196 / math.sqrt(actual_size), 1)
 
     record = {
@@ -562,9 +648,11 @@ async def run_poll(req: PollRequest):
         "date": datetime.now().strftime("%Y-%m-%d %H:%M"),
         "question": req.question,
         "sample_size": actual_size,
+        "sampling": "stratified",
         "results": results,
         "moe": moe,
-        "total_cost": round(total_cost, 4)
+        "total_cost": round(total_cost, 4),
+        "duration_sec": duration,
     }
 
     history = load_poll_history()
@@ -573,10 +661,101 @@ async def run_poll(req: PollRequest):
 
     return record
 
+
 @app.get("/api/poll-history")
 async def get_poll_history():
     """지금까지 실시한 여론조사 히스토리 반환"""
     return load_poll_history()
+
+
+@app.post("/api/update-poll")
+def update_poll(req: PollUpdateRequest):
+    """새 여론조사 데이터로 personas.db의 지지후보를 갱신한다.
+
+    volatility 높은 페르소나부터 delta만큼 지지후보를 변경하고
+    poll_version / last_updated를 전체 업데이트한다.
+    """
+    global _STRATA_CACHE
+
+    overall = req.results.get("overall", {})
+    if not overall:
+        raise HTTPException(status_code=400, detail="results.overall 필드가 필요합니다.")
+
+    conn = get_db()
+    total = conn.execute("SELECT COUNT(*) FROM voters").fetchone()[0]
+
+    current = {
+        r["지지후보"]: r["cnt"]
+        for r in conn.execute(
+            "SELECT 지지후보, COUNT(*) as cnt FROM voters GROUP BY 지지후보"
+        ).fetchall()
+    }
+
+    CANDS = ["하정우", "한동훈", "박민식", "미정"]
+    target: dict[str, int] = {}
+    for c in CANDS:
+        target[c] = round(total * overall.get(c, 0) / 100)
+    # 반올림 오차 보정
+    target["미정"] += total - sum(target.values())
+
+    delta = {c: target.get(c, 0) - current.get(c, 0) for c in CANDS}
+
+    losers  = sorted([c for c in CANDS if delta[c] < 0], key=lambda x: delta[x])
+    gainers = sorted([c for c in CANDS if delta[c] > 0], key=lambda x: -delta[x])
+
+    if not losers or not gainers:
+        conn.close()
+        return {"changed": 0, "message": "변경 불필요 — 목표치와 현재치가 동일합니다."}
+
+    from_to: dict[str, int] = {}
+    total_changed = 0
+
+    try:
+        with conn:
+            update_stmt = "UPDATE voters SET 지지후보=?, poll_version=?, last_updated=? WHERE id=?"
+
+            g_idx = 0
+            g_remain = delta[gainers[0]]
+
+            for loser in losers:
+                needed = -delta[loser]
+                switchers = conn.execute("""
+                    SELECT id FROM voters
+                    WHERE 지지후보 = ?
+                    ORDER BY volatility DESC
+                    LIMIT ?
+                """, (loser, needed)).fetchall()
+
+                for s in switchers:
+                    while g_remain <= 0 and g_idx < len(gainers) - 1:
+                        g_idx += 1
+                        g_remain = delta[gainers[g_idx]]
+                    new_cand = gainers[g_idx]
+                    conn.execute(update_stmt, (new_cand, req.version, req.date, s["id"]))
+                    g_remain -= 1
+                    key = f"{loser}→{new_cand}"
+                    from_to[key] = from_to.get(key, 0) + 1
+                    total_changed += 1
+
+            # poll_version / last_updated 전체 갱신
+            conn.execute(
+                "UPDATE voters SET poll_version=?, last_updated=?",
+                (req.version, req.date)
+            )
+
+    except Exception as e:
+        conn.close()
+        raise HTTPException(status_code=500, detail=str(e))
+
+    conn.close()
+    _STRATA_CACHE = None  # 층화 캐시 무효화
+
+    return {
+        "changed": total_changed,
+        "from_to": from_to,
+        "new_version": req.version,
+        "updated_at": req.date,
+    }
 
 
 if __name__ == "__main__":
