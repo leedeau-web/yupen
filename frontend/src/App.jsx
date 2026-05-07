@@ -4,61 +4,83 @@ import VoterCard from "./components/VoterCard";
 import SurveyModal from "./components/SurveyModal";
 import PollTab from "./components/PollTab";
 import TrendTab from "./components/TrendTab";
-import SentimentTab from "./components/SentimentTab";
 import { API_BASE } from "./config";
 
 const API = API_BASE;
 const PAGE_SIZE = 50;
 
 const TABS = [
-  { id: "voters",    label: "유권자 목록" },
-  { id: "sentiment", label: "유권자 민심" },
-  { id: "poll",      label: "여론조사" },
-  { id: "trend",     label: "민심동향 그래프" },
+  { id: "voters", label: "유권자 목록" },
+  { id: "poll",   label: "여론조사" },
+  { id: "trend",  label: "민심동향 그래프" },
 ];
 
 const EMPTY_FILTERS = { 거주동: null, 연령대: null, 성별: null, 지지후보: null, 정치성향: null, 지지강도: null };
 
+const CANDIDATES = ["하정우", "한동훈", "박민식", "미정"];
+
 export default function App() {
   const [tab, setTab] = useState("voters");
-
-  // 유권자 목록 상태
   const [voters, setVoters] = useState([]);
   const [filteredTotal, setFilteredTotal] = useState(0);
   const [filters, setFilters] = useState(EMPTY_FILTERS);
   const [page, setPage] = useState(0);
   const [loading, setLoading] = useState(false);
 
-  // 전체 지지후보 통계 (122,440명 기준, 한 번만 로드)
-  const [stats, setStats] = useState(null);
+  // 전체 기준 stats (초기 1회)
+  const [globalStats, setGlobalStats] = useState(null);
+  // 거주동+연령대+성별 기준 실시간 stats
+  const [sentimentStats, setSentimentStats] = useState(null);
+  const [sentimentLoading, setSentimentLoading] = useState(false);
 
   const [selectedVoter, setSelectedVoter] = useState(null);
 
-  // 전체 지지후보 분포 — 병렬 4회 호출
-  const loadStats = async () => {
-    const candidates = ["하정우", "한동훈", "박민식", "미정"];
+  // 민심 필터 (거주동+연령대+성별만 추출)
+  const sentimentFilters = { 거주동: filters.거주동, 연령대: filters.연령대, 성별: filters.성별 };
+  const hasSentimentFilter = Object.values(sentimentFilters).some(v => v !== null);
+
+  // 전체 기준 stats — 초기 1회
+  const loadGlobalStats = async () => {
     try {
       const results = await Promise.all(
-        candidates.map(c =>
-          fetch(`${API}/api/voters?지지후보=${encodeURIComponent(c)}&limit=1`)
-            .then(r => r.json())
+        CANDIDATES.map(c =>
+          fetch(`${API}/api/voters?지지후보=${encodeURIComponent(c)}&limit=1`).then(r => r.json())
         )
       );
       const total = results.reduce((s, r) => s + (r.total ?? 0), 0);
       const obj = {};
-      candidates.forEach((c, i) => {
-        obj[c] = {
-          count: results[i].total ?? 0,
-          pct: total ? Math.round((results[i].total / total) * 1000) / 10 : 0,
-        };
+      CANDIDATES.forEach((c, i) => {
+        obj[c] = { count: results[i].total ?? 0, pct: total ? Math.round((results[i].total / total) * 1000) / 10 : 0 };
       });
-      setStats(obj);
-    } catch (e) {
-      console.error("[yupen] stats 로드 실패:", e);
-    }
+      setGlobalStats(obj);
+      setSentimentStats(obj); // 초기값은 전체 기준
+    } catch (e) { console.error("[yupen] globalStats 로드 실패:", e); }
   };
 
-  // 유권자 목록 — 필터 + 페이지 기반
+  // 거주동+연령대+성별 기준 실시간 stats
+  const loadSentimentStats = async (sf) => {
+    setSentimentLoading(true);
+    const base = new URLSearchParams();
+    Object.entries(sf).forEach(([k, v]) => { if (v) base.set(k, v); });
+    try {
+      const results = await Promise.all(
+        CANDIDATES.map(c => {
+          const p = new URLSearchParams(base);
+          p.set("지지후보", c);
+          p.set("limit", "1");
+          return fetch(`${API}/api/voters?${p}`).then(r => r.json());
+        })
+      );
+      const total = results.reduce((s, r) => s + (r.total ?? 0), 0);
+      const obj = {};
+      CANDIDATES.forEach((c, i) => {
+        obj[c] = { count: results[i].total ?? 0, pct: total ? Math.round((results[i].total / total) * 1000) / 10 : 0 };
+      });
+      setSentimentStats(obj);
+    } catch (e) { console.error("[yupen] sentimentStats 로드 실패:", e); }
+    finally { setSentimentLoading(false); }
+  };
+
   const loadVoters = async (currentFilters, currentPage) => {
     setLoading(true);
     const params = new URLSearchParams();
@@ -70,24 +92,23 @@ export default function App() {
       const data = await res.json();
       setVoters(data.voters ?? []);
       setFilteredTotal(data.total ?? 0);
-    } catch (e) {
-      console.error("[yupen] voters 로드 실패:", e);
-    } finally {
-      setLoading(false);
-    }
+    } catch (e) { console.error("[yupen] voters 로드 실패:", e); }
+    finally { setLoading(false); }
   };
 
-  // 초기 로드
-  useEffect(() => {
-    loadStats();
-  }, []);
+  useEffect(() => { loadGlobalStats(); }, []);
 
-  // 필터 또는 페이지 변경 시 재로드
+  // 거주동+연령대+성별 바뀔 때만 sentimentStats 재호출
   useEffect(() => {
-    loadVoters(filters, page);
-  }, [filters, page]);
+    if (hasSentimentFilter) {
+      loadSentimentStats(sentimentFilters);
+    } else {
+      setSentimentStats(globalStats);
+    }
+  }, [filters.거주동, filters.연령대, filters.성별]);
 
-  // 필터 변경 시 페이지 리셋 (React 18 automatic batching으로 단일 effect 실행)
+  useEffect(() => { loadVoters(filters, page); }, [filters, page]);
+
   const handleFiltersChange = (newFilters) => {
     setFilters(newFilters);
     setPage(0);
@@ -99,7 +120,6 @@ export default function App() {
 
   return (
     <div className="flex flex-col min-h-screen">
-      {/* 헤더 */}
       <header className="border-b border-[var(--border)] px-8 py-4 flex items-center justify-between sticky top-0 bg-[var(--bg)] z-10">
         <div>
           <h1 className="text-lg font-bold text-[var(--text-h)]">
@@ -124,52 +144,40 @@ export default function App() {
         </nav>
       </header>
 
-      {/* 유권자 목록 탭 */}
       {tab === "voters" && (
         <div className="flex flex-1 gap-8 p-8">
           <FilterPanel
             filters={filters}
             onChange={handleFiltersChange}
-            stats={stats}
+            sentimentStats={sentimentStats}
+            sentimentLoading={sentimentLoading}
+            hasSentimentFilter={hasSentimentFilter}
+            sentimentFilters={sentimentFilters}
             filteredTotal={filteredTotal}
           />
           <main className="flex-1 min-w-0">
-            {/* 상단 요약 */}
             <p className="text-xs text-[var(--text)] mb-4">
               {loading
                 ? "불러오는 중..."
                 : filteredTotal > 0
                   ? `전체 ${filteredTotal.toLocaleString()}명 중 ${from.toLocaleString()}–${to.toLocaleString()}명 표시`
-                  : "해당하는 유권자가 없습니다."
-              }
+                  : "해당하는 유권자가 없습니다."}
             </p>
-
-            {/* 유권자 카드 그리드 */}
             <div className="grid grid-cols-2 xl:grid-cols-3 gap-3">
               {voters.map(v => (
                 <VoterCard key={v.id} voter={v} onClick={setSelectedVoter} />
               ))}
             </div>
-
-            {/* 페이지네이션 */}
             {filteredTotal > 0 && (
               <div className="flex items-center justify-between mt-6 pt-4 border-t border-[var(--border)]">
-                <span className="text-xs text-[var(--text)] opacity-70">
-                  {page + 1} / {totalPages} 페이지
-                </span>
+                <span className="text-xs text-[var(--text)] opacity-70">{page + 1} / {totalPages} 페이지</span>
                 <div className="flex gap-2">
-                  <button
-                    onClick={() => setPage(p => p - 1)}
-                    disabled={page === 0 || loading}
-                    className="px-3 py-1.5 text-xs rounded-lg border border-[var(--border)] text-[var(--text)] hover:border-[var(--accent)] hover:text-[var(--accent)] disabled:opacity-30 disabled:cursor-not-allowed transition-colors cursor-pointer"
-                  >
+                  <button onClick={() => setPage(p => p - 1)} disabled={page === 0 || loading}
+                    className="px-3 py-1.5 text-xs rounded-lg border border-[var(--border)] text-[var(--text)] hover:border-[var(--accent)] hover:text-[var(--accent)] disabled:opacity-30 disabled:cursor-not-allowed transition-colors cursor-pointer">
                     ← 이전
                   </button>
-                  <button
-                    onClick={() => setPage(p => p + 1)}
-                    disabled={page + 1 >= totalPages || loading}
-                    className="px-3 py-1.5 text-xs rounded-lg border border-[var(--border)] text-[var(--text)] hover:border-[var(--accent)] hover:text-[var(--accent)] disabled:opacity-30 disabled:cursor-not-allowed transition-colors cursor-pointer"
-                  >
+                  <button onClick={() => setPage(p => p + 1)} disabled={page + 1 >= totalPages || loading}
+                    className="px-3 py-1.5 text-xs rounded-lg border border-[var(--border)] text-[var(--text)] hover:border-[var(--accent)] hover:text-[var(--accent)] disabled:opacity-30 disabled:cursor-not-allowed transition-colors cursor-pointer">
                     다음 →
                   </button>
                 </div>
@@ -179,7 +187,6 @@ export default function App() {
         </div>
       )}
 
-      {tab === "sentiment" && <SentimentTab onSelectVoter={setSelectedVoter} />}
       {tab === "poll" && <PollTab />}
       {tab === "trend" && <TrendTab />}
 
