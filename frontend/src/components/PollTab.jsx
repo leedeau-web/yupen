@@ -24,8 +24,8 @@ const COLORS = {
   무응답: "#9ca3af",
 };
 
-// 한길리서치 2026-05-01~03 (5차, n=584)
-const REFERENCE = { 하정우: 34.3, 한동훈: 33.5, 박민식: 21.5, 무응답: 10.7 };
+// SBS/Ipsos 2026-05-01~03 (6차, n=503)
+const REFERENCE = { 하정우: 38, 한동훈: 21, 박민식: 26, 무응답: 15 };
 
 // ── 서브 컴포넌트 ────────────────────────────────────────────────────────────
 
@@ -95,7 +95,7 @@ function ResultChart({ result }) {
                 <div
                   className="absolute top-0 h-full w-0.5 bg-white/70"
                   style={{ left: `${ref}%` }}
-                  title={`한길리서치 5차 ${ref}%`}
+                  title={`SBS/Ipsos 6차 ${ref}%`}
                 />
               </div>
               <div className="flex justify-between text-[10px] text-[var(--text)] mt-0.5">
@@ -110,7 +110,7 @@ function ResultChart({ result }) {
       <div className="flex items-center gap-3 text-[10px] text-[var(--text)] pt-2 border-t border-[var(--border)]">
         <span className="flex items-center gap-1">
           <span className="inline-block w-3 h-0.5 bg-white/70" />
-          기준선: 한길리서치 2026-05-01~03 (5차)
+          기준선: SBS/Ipsos 2026-05-01~03 (6차)
         </span>
         <span className="flex items-center gap-1">
           <span className="inline-block w-4 h-3 border border-white/40 bg-transparent" />
