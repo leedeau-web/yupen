@@ -1,20 +1,39 @@
+import sys
+import io
+import os
+
+# Windows 한글 인코딩 오류 방지 (httpx/anthropic 클라이언트 포함)
+os.environ['PYTHONIOENCODING'] = 'utf-8'
+os.environ['PYTHONUTF8'] = '1'
+
+if sys.stdout and hasattr(sys.stdout, 'buffer'):
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
+if sys.stderr and hasattr(sys.stderr, 'buffer'):
+    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8', errors='replace')
+
 import asyncio
 import json
 import math
-import os
 import random
 import sqlite3
 import time
 import traceback
 import uuid
 import logging
+import platform
 
-logging.basicConfig(level=logging.INFO)
+
+logging.basicConfig(
+    level=logging.INFO,
+    stream=sys.stdout,
+    format="%(asctime)s %(levelname)s %(message)s",
+)
 logger = logging.getLogger(__name__)
 
 from datetime import datetime
 from pathlib import Path
 
+import httpx
 from anthropic import AsyncAnthropic
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException, Query
@@ -41,7 +60,23 @@ DB_PATH           = Path(os.path.join(BASE_DIR, 'backend', 'data', 'personas.db'
 POLL_HISTORY_PATH = Path(os.path.join(BASE_DIR, 'backend', 'data', 'poll_history.json'))
 CONTEXT_PATH      = Path(os.path.join(BASE_DIR, 'backend', 'data', 'context.md'))
 
-client = AsyncAnthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
+import httpx._models as _httpx_models
+
+_orig_normalize = _httpx_models._normalize_header_value
+
+def _patched_normalize(value, encoding):
+    if isinstance(value, str):
+        try:
+            value.encode("ascii")
+        except UnicodeEncodeError:
+            value = value.encode("ascii", errors="replace").decode("ascii")
+    return _orig_normalize(value, encoding)
+
+_httpx_models._normalize_header_value = _patched_normalize
+
+client = AsyncAnthropic(
+    api_key=os.getenv("ANTHROPIC_API_KEY"),
+)
 
 _context: str | None = None
 
@@ -302,9 +337,9 @@ SURVEY_SYSTEM_PROMPT = """당신은 전화 여론조사 시뮬레이터입니다
 3. 지지강도 1-2면 흔들릴 수 있는 부동층처럼, 3이면 보통, 4-5면 확고하게 답합니다.
 4. 말투특성을 그대로 반영합니다.
 5. 이재명 대통령 국정지지도가 투표 선택의 핵심 갈림길입니다:
-   - 이재명 "잘함" 성향 유권자(진보·민주 지지층): 하정우 63% 지지 → 강하게 지지 표현
-   - 이재명 "못함" 성향 유권자(보수층): 박민식 53% / 한동훈 39% → 보수 후보 결집
-   - 최신 다자대결 지지율: 하정우 34.3% / 한동훈 33.5% / 박민식 21.5% (5/1~3 한길리서치 5차, n=584) — 하정우·한동훈 오차범위 내 초박빙
+   - 이재명 "잘함" 성향 유권자(진보·민주 지지층): 하정우 74% 지지 → 강하게 지지 표현
+   - 이재명 "못함" 성향 유권자(보수층): 박민식 54% / 한동훈 27% → 보수 후보 결집
+   - 최신 다자대결 지지율: 하정우 38% / 박민식 26% / 한동훈 21% (5/1~3 SBS/Ipsos 6차, n=503) — 단일화 불성사 시 하정우 당선 유력, 단일화 성사 시 박민식+한동훈 합산 47%로 역전 가능
 6. 연령대별 분리투표 패턴을 반영합니다:
    - 40~50대: 부산시장 전재수 + 국회의원 하정우 동반 지지 가능성 높음
    - 60대: 부산시장·국회의원 분리투표 성향 — "시장은 몰라도 의원은 고민 중" 뉘앙스 자연스럽게
@@ -464,7 +499,9 @@ def get_voters(
     성별: str | None = Query(None),
     지지후보: str | None = Query(None),
     정치성향: str | None = Query(None),
-    limit: int = Query(200, ge=1, le=2000),
+    지지강도: int | None = Query(None, ge=1, le=5),
+    limit: int = Query(50, ge=1, le=2000),
+    offset: int = Query(0, ge=0),
 ):
     query = "SELECT * FROM voters WHERE 1=1"
     params: list = []
@@ -481,6 +518,9 @@ def get_voters(
     if 정치성향:
         query += " AND 정치성향=?"
         params.append(정치성향)
+    if 지지강도 is not None:
+        query += " AND 지지강도=?"
+        params.append(지지강도)
     if 연령대 and 연령대 in AGE_BAND_RANGES:
         lo, hi = AGE_BAND_RANGES[연령대]
         query += " AND 나이>=? AND 나이<=?"
@@ -489,7 +529,7 @@ def get_voters(
     count_query = query.replace("SELECT *", "SELECT COUNT(*)")
     conn = get_db()
     total = conn.execute(count_query, params).fetchone()[0]
-    rows = conn.execute(query + f" ORDER BY RANDOM() LIMIT {limit}", params).fetchall()
+    rows = conn.execute(query + f" ORDER BY id LIMIT {limit} OFFSET {offset}", params).fetchall()
     conn.close()
     return {"total": total, "returned": len(rows), "voters": [dict(r) for r in rows]}
 
@@ -514,6 +554,7 @@ async def survey(req: SurveyRequest):
     except HTTPException:
         raise
     except Exception as e:
+        logger.exception("survey 엔드포인트 오류 (voter_id=%s)", req.voter_id)
         raise HTTPException(status_code=500, detail=f"{type(e).__name__}: {str(e)}\n{traceback.format_exc()}")
 
 

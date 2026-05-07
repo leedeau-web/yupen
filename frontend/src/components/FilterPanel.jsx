@@ -29,7 +29,9 @@ function FilterChip({ label, active, onClick }) {
   );
 }
 
-export default function FilterPanel({ filters, onChange, allVoters, filteredCount }) {
+// stats: { 하정우: {count, pct}, 한동훈: ..., 박민식: ..., 미정: ... } | null
+// filteredTotal: 현재 필터 기준 DB 총 인원
+export default function FilterPanel({ filters, onChange, stats, filteredTotal }) {
   const toggle = (key, value) => {
     onChange({ ...filters, [key]: filters[key] === value ? null : value });
   };
@@ -38,33 +40,47 @@ export default function FilterPanel({ filters, onChange, allVoters, filteredCoun
     onChange({ 거주동: null, 연령대: null, 성별: null, 지지후보: null, 정치성향: null, 지지강도: null });
   };
 
-  const candidateCounts = ["하정우", "한동훈", "박민식", "미정"].map((c) => ({
-    name: c,
-    count: allVoters.filter((v) => v.지지후보 === c).length,
-    pct: Math.round((allVoters.filter((v) => v.지지후보 === c).length / allVoters.length) * 100),
-  }));
+  const candidates = ["하정우", "한동훈", "박민식", "미정"];
 
   return (
     <aside className="w-56 shrink-0 flex flex-col gap-5">
-      {/* 지지후보 분포 */}
+      {/* 지지후보 분포 — 122,440명 전체 기준 */}
       <div>
-        <p className="text-xs font-semibold text-[var(--text-h)] mb-2 uppercase tracking-wide">지지후보 분포</p>
-        <div className="flex flex-col gap-2">
-          {candidateCounts.map(({ name, count, pct }) => (
-            <div key={name}>
-              <div className="flex justify-between text-xs mb-0.5">
-                <span className="text-[var(--text-h)] font-medium">{name}</span>
-                <span className="text-[var(--text)]">{count}명 {pct}%</span>
-              </div>
-              <div className="h-1.5 rounded-full bg-[var(--border)]">
-                <div
-                  className={`h-1.5 rounded-full ${CANDIDATE_BAR_COLORS[name]}`}
-                  style={{ width: `${pct}%` }}
-                />
-              </div>
-            </div>
-          ))}
-        </div>
+        <p className="text-xs font-semibold text-[var(--text-h)] mb-2 uppercase tracking-wide">
+          지지후보 분포
+        </p>
+        {stats === null ? (
+          <div className="flex flex-col gap-2">
+            {candidates.map(c => (
+              <div key={c} className="h-8 rounded bg-[var(--border)] animate-pulse" />
+            ))}
+          </div>
+        ) : (
+          <div className="flex flex-col gap-2">
+            {candidates.map(c => {
+              const { count, pct } = stats[c] ?? { count: 0, pct: 0 };
+              return (
+                <div key={c}>
+                  <div className="flex justify-between text-xs mb-0.5">
+                    <span className="text-[var(--text-h)] font-medium">{c}</span>
+                    <span className="text-[var(--text)]">
+                      {count.toLocaleString()}명 {pct}%
+                    </span>
+                  </div>
+                  <div className="h-1.5 rounded-full bg-[var(--border)]">
+                    <div
+                      className={`h-1.5 rounded-full ${CANDIDATE_BAR_COLORS[c]}`}
+                      style={{ width: `${pct}%` }}
+                    />
+                  </div>
+                </div>
+              );
+            })}
+            <p className="text-[10px] text-[var(--text)] opacity-50 mt-0.5">
+              전체 122,440명 기준
+            </p>
+          </div>
+        )}
       </div>
 
       <div className="border-t border-[var(--border)]" />
@@ -75,7 +91,7 @@ export default function FilterPanel({ filters, onChange, allVoters, filteredCoun
           <div key={key}>
             <p className="text-xs font-semibold text-[var(--text-h)] mb-1.5 uppercase tracking-wide">{key}</p>
             <div className="flex flex-wrap gap-1.5">
-              {options.map((opt) => (
+              {options.map(opt => (
                 <FilterChip
                   key={opt}
                   label={opt}
@@ -92,7 +108,9 @@ export default function FilterPanel({ filters, onChange, allVoters, filteredCoun
 
       {/* 결과 요약 + 초기화 */}
       <div className="flex items-center justify-between">
-        <span className="text-sm text-[var(--text-h)] font-medium">{filteredCount}명</span>
+        <span className="text-sm text-[var(--text-h)] font-medium">
+          {filteredTotal.toLocaleString()}명
+        </span>
         <button
           onClick={reset}
           className="text-xs text-[var(--text)] hover:text-[var(--accent)] transition-colors cursor-pointer"
