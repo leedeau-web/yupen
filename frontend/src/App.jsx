@@ -15,7 +15,7 @@ const TABS = [
   { id: "trend",  label: "민심동향 그래프" },
 ];
 
-const EMPTY_FILTERS = { 거주동: null, 연령대: null, 성별: null, 지지후보: null, 정치성향: null, 지지강도: null };
+const EMPTY_FILTERS = { 거주동: [], 연령대: [], 성별: [], 지지후보: null, 정치성향: null, 지지강도: null };
 
 const CANDIDATES = ["하정우", "한동훈", "박민식", "미정"];
 
@@ -37,7 +37,7 @@ export default function App() {
 
   // 민심 필터 (거주동+연령대+성별만 추출)
   const sentimentFilters = { 거주동: filters.거주동, 연령대: filters.연령대, 성별: filters.성별 };
-  const hasSentimentFilter = Object.values(sentimentFilters).some(v => v !== null);
+  const hasSentimentFilter = Object.values(sentimentFilters).some(v => v.length > 0);
 
   // 전체 기준 stats — 초기 1회
   const loadGlobalStats = async () => {
@@ -61,7 +61,7 @@ export default function App() {
   const loadSentimentStats = async (sf) => {
     setSentimentLoading(true);
     const base = new URLSearchParams();
-    Object.entries(sf).forEach(([k, v]) => { if (v) base.set(k, v); });
+    Object.entries(sf).forEach(([k, arr]) => { arr.forEach(v => base.append(k, v)); });
     try {
       const results = await Promise.all(
         CANDIDATES.map(c => {
@@ -84,7 +84,10 @@ export default function App() {
   const loadVoters = async (currentFilters, currentPage) => {
     setLoading(true);
     const params = new URLSearchParams();
-    Object.entries(currentFilters).forEach(([k, v]) => { if (v) params.set(k, v); });
+    Object.entries(currentFilters).forEach(([k, v]) => {
+      if (Array.isArray(v)) { v.forEach(item => params.append(k, item)); }
+      else if (v) { params.set(k, v); }
+    });
     params.set("limit", PAGE_SIZE);
     params.set("offset", currentPage * PAGE_SIZE);
     try {
@@ -105,7 +108,7 @@ export default function App() {
     } else {
       setSentimentStats(globalStats);
     }
-  }, [filters.거주동, filters.연령대, filters.성별]);
+  }, [JSON.stringify(filters.거주동), JSON.stringify(filters.연령대), JSON.stringify(filters.성별)]);
 
   useEffect(() => { loadVoters(filters, page); }, [filters, page]);
 

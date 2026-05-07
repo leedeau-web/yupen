@@ -388,18 +388,18 @@ def health():
 
 @app.get("/api/voters")
 def get_voters(
-    거주동: str | None = Query(None),
-    연령대: str | None = Query(None),
-    성별: str | None = Query(None),
+    거주동: list[str] = Query(default=[]),
+    연령대: list[str] = Query(default=[]),
+    성별: list[str] = Query(default=[]),
     지지후보: str | None = Query(None),
     정치성향: str | None = Query(None),
     지지강도: int | None = Query(None),
 ):
     df = get_df().copy()
     if 거주동:
-        df = df[df["거주동"] == 거주동]
+        df = df[df["거주동"].isin(거주동)]
     if 성별:
-        df = df[df["성별"] == 성별]
+        df = df[df["성별"].isin(성별)]
     if 지지후보:
         df = df[df["지지후보"] == 지지후보]
     if 정치성향:
@@ -407,13 +407,15 @@ def get_voters(
     if 지지강도 is not None:
         df = df[df["지지강도"] == 지지강도]
     if 연령대:
+        from functools import reduce
+        import operator
         age_map = {
             "20대": (20, 29), "30대": (30, 39), "40대": (40, 49),
             "50대": (50, 59), "60대": (60, 69), "70대이상": (70, 99),
         }
-        if 연령대 in age_map:
-            lo, hi = age_map[연령대]
-            df = df[(df["나이"] >= lo) & (df["나이"] <= hi)]
+        masks = [(df["나이"] >= age_map[a][0]) & (df["나이"] <= age_map[a][1]) for a in 연령대 if a in age_map]
+        if masks:
+            df = df[reduce(operator.or_, masks)]
     return {"total": len(df), "voters": df.to_dict(orient="records")}
 
 

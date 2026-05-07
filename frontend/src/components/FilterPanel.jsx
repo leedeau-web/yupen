@@ -56,18 +56,25 @@ export default function FilterPanel({
   filteredTotal,
 }) {
   const toggle = (key, value) => {
-    onChange({ ...filters, [key]: filters[key] === value ? null : value });
+    const isMulti = ['거주동', '연령대', '성별'].includes(key);
+    if (isMulti) {
+      const arr = filters[key] ?? [];
+      const next = arr.includes(value) ? arr.filter(v => v !== value) : [...arr, value];
+      onChange({ ...filters, [key]: next });
+    } else {
+      onChange({ ...filters, [key]: filters[key] === value ? null : value });
+    }
   };
 
   const reset = () => {
-    onChange({ 거주동: null, 연령대: null, 성별: null, 지지후보: null, 정치성향: null, 지지강도: null });
+    onChange({ 거주동: [], 연령대: [], 성별: [], 지지후보: null, 정치성향: null, 지지강도: null });
   };
 
   const status = getStatus(sentimentStats);
 
   // 민심 기준 표시 라벨
   const sentimentLabel = hasSentimentFilter
-    ? Object.entries(sentimentFilters).filter(([, v]) => v).map(([, v]) => v).join(" · ")
+    ? Object.values(sentimentFilters).flat().filter(Boolean).join(" · ")
     : "전체 122,440명";
 
   return (
@@ -133,7 +140,7 @@ export default function FilterPanel({
         <p className="text-xs font-semibold text-[var(--text-h)] mb-1.5 uppercase tracking-wide">거주동</p>
         <div className="flex flex-wrap gap-1.5">
           {SENTIMENT_FILTERS.거주동.map(opt => (
-            <FilterChip key={opt} label={opt} active={filters.거주동 === opt} onClick={() => toggle("거주동", opt)} />
+            <FilterChip key={opt} label={opt} active={(filters.거주동 ?? []).includes(opt)} onClick={() => toggle("거주동", opt)} />
           ))}
         </div>
       </div>
@@ -143,7 +150,7 @@ export default function FilterPanel({
         <p className="text-xs font-semibold text-[var(--text-h)] mb-1.5 uppercase tracking-wide">연령대</p>
         <div className="flex flex-wrap gap-1.5">
           {SENTIMENT_FILTERS.연령대.map(opt => (
-            <FilterChip key={opt} label={opt} active={filters.연령대 === opt} onClick={() => toggle("연령대", opt)} />
+            <FilterChip key={opt} label={opt} active={(filters.연령대 ?? []).includes(opt)} onClick={() => toggle("연령대", opt)} />
           ))}
         </div>
       </div>
@@ -153,7 +160,7 @@ export default function FilterPanel({
         <p className="text-xs font-semibold text-[var(--text-h)] mb-1.5 uppercase tracking-wide">성별</p>
         <div className="flex flex-wrap gap-1.5">
           {SENTIMENT_FILTERS.성별.map(opt => (
-            <FilterChip key={opt} label={opt} active={filters.성별 === opt} onClick={() => toggle("성별", opt)} />
+            <FilterChip key={opt} label={opt} active={(filters.성별 ?? []).includes(opt)} onClick={() => toggle("성별", opt)} />
           ))}
         </div>
       </div>
