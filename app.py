@@ -21,6 +21,7 @@ import traceback
 import uuid
 import logging
 import platform
+import subprocess
 
 
 logging.basicConfig(
@@ -797,6 +798,18 @@ def update_poll(req: PollUpdateRequest):
         "new_version": req.version,
         "updated_at": req.date,
     }
+
+
+def ensure_personas_db():
+    db_path = Path(os.path.join(BASE_DIR, 'backend', 'data', 'personas.db'))
+    if not db_path.exists():
+        logger.info("personas.db 없음 — 자동 생성 시작...")
+        data_dir = os.path.join(BASE_DIR, 'backend', 'data')
+        subprocess.run(['npm', 'install'], cwd=data_dir, check=True)
+        subprocess.run(['node', 'generate_personas_122440.js'], cwd=data_dir, check=True)
+        logger.info("personas.db 생성 완료!")
+
+ensure_personas_db()
 
 
 if __name__ == "__main__":
