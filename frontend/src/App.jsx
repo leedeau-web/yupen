@@ -4,15 +4,17 @@ import VoterCard from "./components/VoterCard";
 import SurveyModal from "./components/SurveyModal";
 import PollTab from "./components/PollTab";
 import TrendTab from "./components/TrendTab";
+import SentimentTab from "./components/SentimentTab";
 import { API_BASE } from "./config";
 
 const API = API_BASE;
 const PAGE_SIZE = 50;
 
 const TABS = [
-  { id: "voters", label: "유권자 목록" },
-  { id: "poll", label: "여론조사" },
-  { id: "trend", label: "민심동향 그래프" },
+  { id: "voters",    label: "유권자 목록" },
+  { id: "sentiment", label: "유권자 민심" },
+  { id: "poll",      label: "여론조사" },
+  { id: "trend",     label: "민심동향 그래프" },
 ];
 
 const EMPTY_FILTERS = { 거주동: null, 연령대: null, 성별: null, 지지후보: null, 정치성향: null, 지지강도: null };
@@ -177,6 +179,7 @@ export default function App() {
         </div>
       )}
 
+      {tab === "sentiment" && <SentimentTab onSelectVoter={setSelectedVoter} />}
       {tab === "poll" && <PollTab />}
       {tab === "trend" && <TrendTab />}
 
