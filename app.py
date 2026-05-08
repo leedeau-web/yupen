@@ -21,7 +21,6 @@ import traceback
 import uuid
 import logging
 import platform
-import subprocess
 
 
 logging.basicConfig(
@@ -800,13 +799,234 @@ def update_poll(req: PollUpdateRequest):
     }
 
 
+def generate_personas_db(db_path: Path):
+    """generate_personas_122440.js 로직을 순수 Python+SQLite로 재구현."""
+    _TOTAL        = 122440
+    _POLL_VERSION = 6
+    _LAST_UPDATED = '2026-05-07'
+
+    def _pick(arr):           return random.choice(arr)
+    def _pick_w(items, wts):  return random.choices(items, weights=wts, k=1)[0]
+    def _rand_int(a, b):      return random.randint(a, b)
+    def _rand_float(a, b):    return round(a + random.random() * (b - a), 4)
+
+    def _build_slots(count_map):
+        slots = []
+        for val, n in count_map.items():
+            slots.extend([val] * n)
+        random.shuffle(slots)
+        return slots
+
+    # ── 이름 풀 ──────────────────────────────────────────────────────────────
+    _NAMES = {
+        '남': {
+            'young': ['민준','준호','성호','재원','대현','현우','상민','성진','동현','재민',
+                      '태호','성민','진수','우진','지훈','건우','도윤','예준','시우','주원'],
+            'old':   ['영철','병수','창수','철호','만수','영호','봉수','기태','용철','태식',
+                      '경호','학수','덕수','판수','길동','종수','광수','정호','명수','재호'],
+        },
+        '여': {
+            'young': ['지영','수연','민지','유진','현주','소희','은지','서연','지수','혜진',
+                      '은혜','수진','미진','지혜','나영','하은','서윤','지안','채원','수아'],
+            'old':   ['영숙','순희','미숙','명자','정숙','순자','복순','영자','금순','분자',
+                      '춘자','귀순','봉희','경순','옥순','말순','계순','분례','갑순','말례'],
+        },
+    }
+    _SURNAMES = ['김','이','박','최','정','강','조','윤','장','임','한','오','서','신','권','황','안','송','류','전']
+
+    def _make_name(gender, age):
+        pool = _NAMES[gender]['old' if age >= 55 else 'young']
+        return _pick(_SURNAMES) + _pick(pool)
+
+    # ── 동별 특성 ─────────────────────────────────────────────────────────────
+    _DONG_AREA = {
+        '구포1동': '구포', '구포2동': '구포', '구포3동': '구포',
+        '덕천1동': '덕천', '덕천2동': '덕천', '덕천3동': '덕천',
+        '만덕2동': '만덕', '만덕3동': '만덕',
+    }
+    _DONG_CHAR = {
+        '구포1동': 'gupo', '구포2동': 'gupo', '구포3동': 'gupo',
+        '덕천1동': 'deok', '덕천2동': 'deok', '덕천3동': 'deok',
+        '만덕2동': 'mand', '만덕3동': 'mand',
+    }
+    _JOBS = {
+        'gupo': ['자영업자','상인','배달기사','건설노동자','청소원','식당주인','편의점운영','무직','택시기사','일용직'],
+        'deok': ['회사원','공무원','교사','간호사','은행원','엔지니어','관리직','전문직','주부','자영업자'],
+        'mand': ['자영업자','청소원','경비원','생산직','가사도우미','택시기사','일용직','무직','배달기사','식당주인'],
+    }
+
+    def _housing(char):
+        if char == 'gupo': return _pick_w(['단독주택','빌라/연립','아파트','원룸/고시원'], [28, 36, 26, 10])
+        if char == 'deok': return _pick_w(['아파트','빌라/연립','단독주택'],               [62, 24, 14])
+        return                    _pick_w(['단독주택','빌라/연립','아파트'],               [42, 34, 24])
+
+    # ── 속성 생성 함수 ────────────────────────────────────────────────────────
+    def _edu(age):
+        if age >= 70: return _pick_w(['중졸','고졸','전문대졸','대졸'],     [28, 44, 16, 12])
+        if age >= 60: return _pick_w(['중졸','고졸','전문대졸','대졸'],     [12, 44, 24, 20])
+        if age >= 50: return _pick_w(['중졸','고졸','전문대졸','대졸'],     [ 5, 36, 30, 29])
+        if age >= 40: return _pick_w(['고졸','전문대졸','대졸','대학원졸'], [18, 28, 42, 12])
+        if age >= 30: return _pick_w(['고졸','전문대졸','대졸','대학원졸'], [10, 22, 50, 18])
+        return               _pick_w(['고졸','전문대졸','대졸','대학원졸'], [ 7, 18, 56, 19])
+
+    _ORI_W = {'하정우': [55,31,14], '한동훈': [10,37,53], '박민식': [7,24,69], '미정': [22,55,23]}
+    def _orientation(c): return _pick_w(['진보','중도','보수'], _ORI_W[c])
+
+    def _issue(age):
+        if age >= 65: return _pick_w(['복지','안보','부동산','일자리','교육'], [35, 30, 20, 12,  3])
+        if age >= 55: return _pick_w(['부동산','복지','안보','일자리','교육'], [27, 28, 18, 19,  8])
+        if age >= 45: return _pick_w(['부동산','일자리','복지','교육','안보'], [30, 26, 22, 14,  8])
+        if age >= 35: return _pick_w(['일자리','부동산','교육','복지','안보'], [33, 28, 22, 12,  5])
+        return               _pick_w(['일자리','교육','부동산','복지','안보'], [40, 30, 18,  8,  4])
+
+    def _strength(c):
+        if c == '미정':   return _pick_w([1, 2],    [55, 45])
+        if c == '하정우': return _pick_w([3, 4, 5], [18, 40, 42])
+        if c == '한동훈': return _pick_w([3, 4, 5], [28, 44, 28])
+        return                   _pick_w([3, 4, 5], [26, 44, 30])
+
+    def _voting(age, s):
+        if age >= 65: return _pick_w(['반드시','아마도','모름','안할것'], [70, 22,  6,  2])
+        if s >= 5:    return _pick_w(['반드시','아마도','모름','안할것'], [76, 18,  4,  2])
+        if s >= 4:    return _pick_w(['반드시','아마도','모름','안할것'], [55, 33,  9,  3])
+        if s == 3:    return _pick_w(['반드시','아마도','모름','안할것'], [38, 38, 18,  6])
+        return               _pick_w(['반드시','아마도','모름','안할것'], [13, 30, 37, 20])
+
+    def _past_party(o):
+        if o == '진보': return _pick_w(['민주당','조국혁신당','정의당','기타','없음(첫투표)'], [70, 10,  6, 10,  4])
+        if o == '보수': return _pick_w(['국민의힘','개혁신당','기타','없음(첫투표)','민주당'],  [72,  8, 10,  6,  4])
+        return                _pick_w(['민주당','국민의힘','개혁신당','기타','없음(첫투표)'],  [30, 30,  8, 20, 12])
+
+    def _speech(age):
+        if age >= 70: return _pick_w(['소극적','감정적','무관심','적극적','논리적'], [28, 34, 24, 10,  4])
+        if age >= 60: return _pick_w(['감정적','소극적','적극적','무관심','논리적'], [30, 24, 24, 17,  5])
+        if age >= 50: return _pick_w(['적극적','감정적','논리적','소극적','무관심'], [28, 26, 22, 15,  9])
+        if age >= 40: return _pick_w(['논리적','적극적','감정적','소극적','무관심'], [30, 28, 22, 13,  7])
+        if age >= 30: return _pick_w(['논리적','적극적','소극적','무관심','감정적'], [32, 28, 18, 14,  8])
+        return               _pick_w(['무관심','소극적','논리적','적극적','감정적'], [30, 25, 22, 15,  8])
+
+    def _volatility(c, s):
+        if c == '미정': return _rand_float(0.70, 1.00)
+        if s <= 3:      return _rand_float(0.40, 0.70)
+        return                 _rand_float(0.00, 0.30)
+
+    def _approval_ljm(o):
+        if o == '진보': return _rand_float(0.85, 0.98)
+        if o == '중도': return _rand_float(0.60, 0.75)
+        return                 _rand_float(0.25, 0.45)
+
+    def _mayor_pref(c):
+        if c == '하정우': return _pick_w(['전재수','박형준','미정'], [85,  5, 10])
+        if c == '한동훈': return _pick_w(['전재수','박형준','미정'], [30, 48, 22])
+        if c == '박민식': return _pick_w(['전재수','박형준','미정'], [23, 56, 21])
+        return                   _pick_w(['전재수','박형준','미정'], [55, 20, 25])
+
+    # ── ① 연령×후보 그룹 (1~6차 가중평균) ───────────────────────────────────
+    _age_groups = [
+        (18,29,'하정우',5233),(18,29,'한동훈',4282),(18,29,'박민식',3614),(18,29,'미정',2788),
+        (30,39,'하정우',3758),(30,39,'한동훈',4395),(30,39,'박민식',4700),(30,39,'미정',3064),
+        (40,49,'하정우',8420),(40,49,'한동훈',2705),(40,49,'박민식',3483),(40,49,'미정',1921),
+        (50,59,'하정우',9670),(50,59,'한동훈',4870),(50,59,'박민식',5998),(50,59,'미정',2113),
+        (60,69,'하정우',11101),(60,69,'한동훈',6620),(60,69,'박민식',6221),(60,69,'미정',3607),
+        (70,88,'하정우',6663),(70,88,'한동훈',7940),(70,88,'박민식',6665),(70,88,'미정',2609),
+    ]
+    assert sum(g[3] for g in _age_groups) == _TOTAL
+
+    # ── ② 동별 슬롯 ─────────────────────────────────────────────────────────
+    _dong_slots = _build_slots({
+        '구포1동': 14203, '구포2동': 21549, '구포3동': 16897,
+        '덕천1동': 11020, '덕천2동': 10652, '덕천3동':  9428,
+        '만덕2동': 22774, '만덕3동': 15917,
+    })
+
+    # ── ③ 성별 슬롯 ─────────────────────────────────────────────────────────
+    _gender_slots = _build_slots({'남': 60240, '여': 62200})
+
+    # ── ④ 연령×후보 스펙 슬롯 셔플 ──────────────────────────────────────────
+    _spec_slots = []
+    for (a0, a1, cand, cnt) in _age_groups:
+        _spec_slots.extend([(a0, a1, cand)] * cnt)
+    random.shuffle(_spec_slots)
+
+    # ── DB 생성 ──────────────────────────────────────────────────────────────
+    if db_path.exists():
+        db_path.unlink()
+
+    conn = sqlite3.connect(str(db_path))
+    conn.executescript("""
+        CREATE TABLE voters (
+            id               INTEGER PRIMARY KEY,
+            이름             TEXT    NOT NULL,
+            성별             TEXT    NOT NULL,
+            나이             INTEGER NOT NULL,
+            거주동           TEXT    NOT NULL,
+            dong_area        TEXT    NOT NULL,
+            직업             TEXT    NOT NULL,
+            학력             TEXT    NOT NULL,
+            가구형태         TEXT    NOT NULL,
+            주요관심이슈     TEXT    NOT NULL,
+            지지후보         TEXT    NOT NULL,
+            지지강도         INTEGER NOT NULL,
+            투표의향         TEXT    NOT NULL,
+            정치성향         TEXT    NOT NULL,
+            과거투표정당     TEXT    NOT NULL,
+            말투특성         TEXT    NOT NULL,
+            volatility       REAL    NOT NULL,
+            approval_LJM     REAL    NOT NULL,
+            busan_mayor_pref TEXT    NOT NULL,
+            poll_version     INTEGER NOT NULL,
+            last_updated     TEXT    NOT NULL
+        );
+        CREATE INDEX idx_dong        ON voters(거주동);
+        CREATE INDEX idx_dong_area   ON voters(dong_area);
+        CREATE INDEX idx_orientation ON voters(정치성향);
+        CREATE INDEX idx_candidate   ON voters(지지후보);
+        CREATE INDEX idx_poll        ON voters(poll_version);
+        CREATE INDEX idx_volatility  ON voters(volatility DESC);
+    """)
+
+    _SQL = "INSERT INTO voters VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"
+    _BATCH = 5000
+    _buf = []
+
+    start_t = time.time()
+    with conn:
+        for i in range(_TOTAL):
+            a0, a1, cand = _spec_slots[i]
+            dong  = _dong_slots[i]
+            gender = _gender_slots[i]
+            age   = _rand_int(a0, a1)
+            char  = _DONG_CHAR[dong]
+            ori   = _orientation(cand)
+            s     = _strength(cand)
+
+            _buf.append((
+                i + 1, _make_name(gender, age), gender, age,
+                dong, _DONG_AREA[dong], _pick(_JOBS[char]),
+                _edu(age), _housing(char), _issue(age),
+                cand, s, _voting(age, s), ori, _past_party(ori),
+                _speech(age), _volatility(cand, s),
+                _approval_ljm(ori), _mayor_pref(cand),
+                _POLL_VERSION, _LAST_UPDATED,
+            ))
+
+            if len(_buf) == _BATCH:
+                conn.executemany(_SQL, _buf)
+                _buf = []
+                logger.info("  진행: %s / %s (%d%%)", f"{i+1:,}", f"{_TOTAL:,}", (i+1)*100//_TOTAL)
+
+        if _buf:
+            conn.executemany(_SQL, _buf)
+
+    elapsed = round(time.time() - start_t, 1)
+    logger.info("✓ %s명 생성 완료 → %s (%s초)", f"{_TOTAL:,}", db_path, elapsed)
+    conn.close()
+
+
 def ensure_personas_db():
-    db_path = Path(os.path.join(BASE_DIR, 'backend', 'data', 'personas.db'))
-    if not db_path.exists():
+    if not DB_PATH.exists():
         logger.info("personas.db 없음 — 자동 생성 시작...")
-        data_dir = os.path.join(BASE_DIR, 'backend', 'data')
-        subprocess.run(['npm', 'install'], cwd=data_dir, check=True)
-        subprocess.run(['node', 'generate_personas_122440.js'], cwd=data_dir, check=True)
+        generate_personas_db(DB_PATH)
         logger.info("personas.db 생성 완료!")
 
 ensure_personas_db()
