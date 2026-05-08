@@ -36,3 +36,4 @@ backend/data/node_modules/
 # OS
 .DS_Store
 Thumbs.db
+temp*.txt\ntemp_output.txt
