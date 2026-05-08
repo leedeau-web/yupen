@@ -1,0 +1,80 @@
+    return {"message": "유펜 (Yupen) API"}
+
+
+@app.get("/health")
+def health():
+    return {"status": "ok"}
+
+
+@app.get("/api/voters")
+def get_voters(
+    거주동: str | None = Query(None),
+    연령대: str | None = Query(None),
+    성별: str | None = Query(None),
+    지지후보: str | None = Query(None),
+    정치성향: str | None = Query(None),
+    지지강도: int | None = Query(None),
+):
+    df = get_df().copy()
+    if 거주동:
+        df = df[df["거주동"] == 거주동]
+    if 성별:
+        df = df[df["성별"] == 성별]
+    if 지지후보:
+        df = df[df["지지후보"] == 지지후보]
+    if 정치성향:
+        df = df[df["정치성향"] == 정치성향]
+    if 지지강도 is not None:
+        df = df[df["지지강도"] == 지지강도]
+    if 연령대:
+        age_map = {
+            "20대": (20, 29), "30대": (30, 39), "40대": (40, 49),
+            "50대": (50, 59), "60대": (60, 69), "70대이상": (70, 99),
+        }
+        if 연령대 in age_map:
+            lo, hi = age_map[연령대]
+            df = df[(df["나이"] >= lo) & (df["나이"] <= hi)]
+    return {"total": len(df), "voters": df.to_dict(orient="records")}
+
+
+@app.post("/api/survey", response_model=SurveyResponse)
+async def survey(req: SurveyRequest):
+    try:
+        df = get_df()
+        row = df[df["id"] == req.voter_id]
+        if row.empty:
+            raise HTTPException(status_code=404, detail="유권자를 찾을 수 없습니다.")
+        voter = row.iloc[0]
+        result = await call_claude_survey(voter, req.question)
+        return SurveyResponse(
+            voter_id=req.voter_id,
+            name=str(voter["이름"]),
+            response=result.get("response", ""),
+            emotion=result.get("emotion", "중립"),
+            persuasibility=float(result.get("persuasibility", 0.5)),
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"{type(e).__name__}: {str(e)}\n{traceback.format_exc()}")
+
+
+@app.post("/api/batch-survey", response_model=BatchSurveyStats)
+async def batch_survey(req: BatchSurveyRequest):
+    df = get_df().copy()
+    if req.거주동:
+        df = df[df["거주동"] == req.거주동]
+    if req.성별:
+        df = df[df["성별"] == req.성별]
+    if req.지지후보:
+        df = df[df["지지후보"] == req.지지후보]
+    if req.정치성향:
+        df = df[df["정치성향"] == req.정치성향]
+    if req.연령대:
+        age_map = {
+            "20대": (20, 29), "30대": (30, 39), "40대": (40, 49),
+            "50대": (50, 59), "60대": (60, 69), "70대이상": (70, 99),
+        }
+        if req.연령대 in age_map:
+            lo, hi = age_map[req.연령대]
+            df = df[(df["나이"] >= lo) & (df["나이"] <= hi)]

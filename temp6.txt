@@ -1,0 +1,80 @@
+        f"- 정치성향: {voter['정치성향']}, 과거투표정당: {voter['과거투표정당']}\n"
+        f"- 주요관심이슈: {voter['주요관심이슈']}\n"
+        f"- 말투특성: {voter['말투특성']} ? {speech}\n"
+        f"- 투표의향: {voter['투표의향']}\n"
+        f"{undecided_note}"
+    )
+
+    message = await client.messages.create(
+        model="claude-opus-4-7",
+        max_tokens=512,
+        system=[
+            {"type": "text", "text": get_context(), "cache_control": {"type": "ephemeral"}},
+            {"type": "text", "text": SURVEY_SYSTEM_PROMPT, "cache_control": {"type": "ephemeral"}},
+        ],
+        messages=[{"role": "user", "content": f"{persona_text}\n\n조사원 질문: {question}"}],
+    )
+
+    raw = message.content[0].text.strip()
+    try:
+        return json.loads(raw)
+    except Exception:
+        import re
+        m = re.search(r'\{.*\}', raw, re.DOTALL)
+        if m:
+            return json.loads(m.group())
+        return {"response": raw, "emotion": "중립", "persuasibility": 0.5}
+
+
+async def call_claude_poll(voter: pd.Series, question: str) -> dict:
+    """갤럽식 여론조사용 단순 후보 선택 호출"""
+    intensity = int(voter["지지강도"])
+    candidate = voter["지지후보"]
+
+    dong_ctx = DISTRICT_CONTEXT.get(voter["거주동"], "")
+    age_band = get_age_band(int(voter["나이"]))
+    age_ctx = AGE_BAND_CONTEXT.get(age_band, "")
+    persona = (
+        f"[지역] {voter['거주동']}: {dong_ctx}\n"
+        f"[연령대] {age_band}: {age_ctx}\n"
+        f"유권자: {voter['나이']}세 {voter['성별']}, {voter['직업']}\n"
+        f"지지후보: {candidate} (지지강도: {intensity}/5)\n"
+        f"정치성향: {voter['정치성향']}, 말투특성: {voter['말투특성']}, 투표의향: {voter['투표의향']}"
+    )
+
+    try:
+        msg = await client.messages.create(
+            model="claude-opus-4-7",
+            max_tokens=32,
+            system=[
+                {"type": "text", "text": get_context(), "cache_control": {"type": "ephemeral"}},
+                {"type": "text", "text": POLL_SYSTEM_PROMPT, "cache_control": {"type": "ephemeral"}},
+            ],
+            messages=[{"role": "user", "content": f"{persona}\n\n조사원 질문: {question}"}],
+        )
+        raw = msg.content[0].text.strip()
+        data = json.loads(raw)
+        choice = data.get("choice", "무응답")
+        if choice not in ["하정우", "한동훈", "박민식", "무응답"]:
+            choice = "무응답"
+
+        # 실제 비용 계산
+        u = msg.usage
+        cost = (
+            getattr(u, "input_tokens", 0) * 5 / 1_000_000
+            + getattr(u, "output_tokens", 0) * 25 / 1_000_000
+            + getattr(u, "cache_read_input_tokens", 0) * 0.5 / 1_000_000
+            + getattr(u, "cache_creation_input_tokens", 0) * 6.25 / 1_000_000
+        )
+        return {"choice": choice, "cost": cost}
+
+    except Exception:
+        # API 실패 시 페르소나 지지후보 그대로 사용
+        fallback = candidate if candidate in ["하정우", "한동훈", "박민식"] else "무응답"
+        return {"choice": fallback, "cost": 0.0}
+
+
+# ─── Poll History Helpers ─────────────────────────────────────────────────────
+
+def load_poll_history() -> list:
+    if not POLL_HISTORY_PATH.exists():

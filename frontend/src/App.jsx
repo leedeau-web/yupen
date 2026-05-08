@@ -4,6 +4,7 @@ import VoterCard from "./components/VoterCard";
 import SurveyModal from "./components/SurveyModal";
 import PollTab from "./components/PollTab";
 import TrendTab from "./components/TrendTab";
+import AboutTab from "./components/AboutTab";
 import { API_BASE } from "./config";
 
 const API = API_BASE;
@@ -13,6 +14,7 @@ const TABS = [
   { id: "voters", label: "유권자 목록" },
   { id: "poll",   label: "여론조사" },
   { id: "trend",  label: "민심동향 그래프" },
+  { id: "about",  label: "유펜 소개" },
 ];
 
 const EMPTY_FILTERS = { 거주동: [], 연령대: [], 성별: [], 지지후보: null, 정치성향: null, 지지강도: null };
@@ -192,6 +194,7 @@ export default function App() {
 
       {tab === "poll" && <PollTab />}
       {tab === "trend" && <TrendTab />}
+      {tab === "about" && <AboutTab />}
 
       {selectedVoter && (
         <SurveyModal voter={selectedVoter} onClose={() => setSelectedVoter(null)} />

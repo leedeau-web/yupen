@@ -703,6 +703,16 @@ async def run_poll(req: PollRequest):
     return record
 
 
+@app.get('/api/about')
+def get_about():
+    """polls.json 데이터 반환 — AboutTab 자동 연동용"""
+    try:
+        data = json.loads(POLL_HISTORY_PATH.parent.joinpath('polls.json').read_text(encoding='utf-8'))
+        return data
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @app.get("/api/poll-history")
 async def get_poll_history():
     """지금까지 실시한 여론조사 히스토리 반환"""
