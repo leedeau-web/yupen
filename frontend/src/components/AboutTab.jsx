@@ -4,12 +4,13 @@ import { API_BASE } from "../config";
 // ── 데이터 ────────────────────────────────────────────────────────────────────
 
 const POLL_WEIGHTS = [
-  { id: "1차", org: "KOPRA/한국여론평판연구소", method: "ARS", n: 505,  rr: 4.2,  period: "4/19~20", mW: 1.0, sW: 1.0, rrW: 0.7, tW: 0.7, score: 21.2, tier: "low" },
-  { id: "2차", org: "미디어토마토",             method: "ARS", n: 802,  rr: 9.0,  period: "4/24~25", mW: 1.0, sW: 1.3, rrW: 1.1, tW: 1.0, score: 61.9, tier: "mid" },
-  { id: "3차", org: "여론조사꽃",               method: "ARS", n: 503,  rr: 8.6,  period: "4/26~27", mW: 1.0, sW: 1.0, rrW: 1.1, tW: 1.0, score: 47.6, tier: "mid" },
-  { id: "4차", org: "KBS부산/한국리서치",        method: "면접", n: 500, rr: 23.3, period: "4/27~28", mW: 1.5, sW: 1.0, rrW: 1.4, tW: 1.0, score: 90.9, tier: "high" },
-  { id: "5차", org: "한길리서치",               method: "ARS", n: 584,  rr: 5.3,  period: "5/1~3",   mW: 1.0, sW: 1.0, rrW: 0.9, tW: 1.4, score: 54.5, tier: "mid" },
-  { id: "6차", org: "SBS/Ipsos",              method: "면접", n: 503,  rr: 14.4, period: "5/1~3",   mW: 1.5, sW: 1.0, rrW: 1.1, tW: 1.4, score: 100,  tier: "best" },
+  { id: "1차", org: "KOPRA/한국여론평판연구소", method: "ARS", n: 505, rr: 4.2, period: "4/19~20", mW: 1, sW: 1, rrW: 0.7, tW: 0.7, score: 17, tier: "low" },
+  { id: "2차", org: "미디어토마토", method: "ARS", n: 802, rr: 9, period: "4/24~25", mW: 1, sW: 1.3, rrW: 1.1, tW: 1, score: 49, tier: "mid" },
+  { id: "3차", org: "여론조사꽃", method: "ARS", n: 503, rr: 8.6, period: "4/26~27", mW: 1, sW: 1, rrW: 1.1, tW: 1, score: 37, tier: "mid" },
+  { id: "4차", org: "KBS부산/한국리서치", method: "면접", n: 500, rr: 23.3, period: "4/27~28", mW: 1.5, sW: 1, rrW: 1.4, tW: 1, score: 71, tier: "high" },
+  { id: "5차", org: "한길리서치", method: "ARS", n: 584, rr: 5.3, period: "5/1~03", mW: 1, sW: 1, rrW: 0.9, tW: 1.4, score: 43, tier: "mid" },
+  { id: "6차", org: "SBS/Ipsos", method: "면접", n: 503, rr: 14.4, period: "5/1~03", mW: 1.5, sW: 1, rrW: 1.1, tW: 1.4, score: 79, tier: "high" },
+  { id: "7차", org: "JTBC/메타보이스", method: "면접", n: 501, rr: 15.1, period: "5/4~05", mW: 1.5, sW: 1, rrW: 1.4, tW: 1.4, score: 100, tier: "best" },
 ];
 
 const WEIGHT_RULES = [
@@ -234,7 +235,7 @@ export default function AboutTab() {
           <p className="text-[10px] text-[var(--text)] opacity-50 leading-relaxed">
             유펜 v1.0<br />
             2026 북구갑<br />
-            보궐선거 분석
+            1~7차 반영
           </p>
         </div>
       </nav>
@@ -304,7 +305,7 @@ export default function AboutTab() {
             <Section title="데이터 업데이트">
               <div className="bg-[var(--code-bg)] border border-[var(--border)] rounded-xl divide-y divide-[var(--border)]">
                 {[
-                  ["여론조사 반영", "1~6차 가중 통합 → personas.db 반영"],
+                  ["여론조사 반영", "1~7차 가중 통합 → personas.db 반영"],
                   ["일별 동향",     "5/1~ 부산 선거 동향 누적 수집"],
                   ["부산시장 조사", "바로미터 등 시장 선거 여론조사 추가"],
                   ["DB 재생성",    "rebuild_db.py 실행 시 자동 가중치 계산"],
@@ -324,7 +325,7 @@ export default function AboutTab() {
           <div>
             <div className="mb-8">
               <h2 className="text-xl font-bold text-[var(--text-h)] mb-1">여론조사 가중치 설계</h2>
-              <p className="text-sm text-[var(--text)]">1~6차 여론조사를 신뢰도에 비례해 가중 평균으로 통합합니다.</p>
+              <p className="text-sm text-[var(--text)]">1~7차 여론조사를 신뢰도에 비례해 가중 평균으로 통합합니다.</p>
             </div>
 
             <Section title="가중치 공식">
@@ -332,7 +333,7 @@ export default function AboutTab() {
                 <p className="text-sm font-mono text-[var(--text-h)]">
                   종합점수 = <span className="text-sky-400">조사방법</span> × <span className="text-violet-400">표본크기</span> × <span className="text-amber-400">응답률</span> × <span className="text-emerald-400">최신성</span>
                 </p>
-                <p className="text-xs text-[var(--text)] mt-2 opacity-60">→ 최고점(SBS/Ipsos 100점) 기준으로 정규화 후 가중 평균 산출</p>
+                <p className="text-xs text-[var(--text)] mt-2 opacity-60">→ 최고점(JTBC/메타보이스 100점) 기준으로 정규화 후 가중 평균 산출</p>
               </div>
             </Section>
 
@@ -398,7 +399,7 @@ export default function AboutTab() {
               </p>
             </Section>
 
-            <Section title="가중 평균 결과 (연령대별 한동훈 기준)">
+            <Section title="가중 평균 결과 (1~7차, 연령대별)">
               <div className="bg-[var(--code-bg)] border border-[var(--border)] rounded-xl overflow-hidden">
                 <table className="w-full text-xs">
                   <thead>
@@ -411,18 +412,19 @@ export default function AboutTab() {
                     </tr>
                   </thead>
                   <tbody>
-                    {[
-                      ["18~29세", 29.5, 24.8, 20.3, 25.4],
-                      ["30대",    33.3, 27.2, 23.1, 16.4],
-                      ["40대",    50.9, 16.6, 18.8, 13.8],
-                      ["50대",    42.1, 20.9, 23.0, 13.9],
-                      ["60대",    38.7, 23.9, 23.6, 13.9],
-                      ["70대+",   27.0, 32.6, 28.1, 12.3],
-                    ].map(([band, h, k, p, m]) => (
+                    {
+    [
+      ["18~29세", 28.5, 25.5, 23.6, 22.4],
+      ["30대", 23.9, 24.8, 29.2, 22.1],
+      ["40대", 52.7, 16.8, 19.3, 11.2],
+      ["50대", 45.6, 22.5, 24.1, 7.8],
+      ["60대", 39.1, 26.6, 23.4, 10.9],
+      ["70대+", 26.8, 31.7, 31.1, 10.4],
+    ].map(([band, h, k, p, m]) => (
                       <tr key={band} className="border-b border-[var(--border)] last:border-0">
                         <td className="px-4 py-2.5 font-semibold text-[var(--text-h)]">{band}</td>
                         <td className="px-4 py-2.5 text-right text-blue-400 font-medium">{h}%</td>
-                        <td className="px-4 py-2.5 text-right text-amber-400 font-bold">{k}%</td>
+                        <td className="px-4 py-2.5 text-right text-amber-400 font-medium">{k}%</td>
                         <td className="px-4 py-2.5 text-right text-red-400 font-medium">{p}%</td>
                         <td className="px-4 py-2.5 text-right text-[var(--text)]">{m}%</td>
                       </tr>
@@ -606,9 +608,9 @@ export default function AboutTab() {
               <div className="bg-[var(--code-bg)] border border-[var(--border)] rounded-xl divide-y divide-[var(--border)]">
                 {[
                   ["총 유권자 수",    "122,440명"],
-                  ["현재 poll_version", "6차 (SBS/Ipsos 기준)"],
-                  ["마지막 업데이트", "2026-05-07"],
-                  ["지지후보 배분",   "하정우 37.0% / 한동훈 24.5% / 박민식 23.1% / 미정 15.4%"],
+                  ["현재 poll_version", "7차 (JTBC/메타보이스 기준)"],
+                  ["마지막 업데이트", "2026-05-11"],
+                  ["지지후보 배분",   "하정우 36.4% / 한동훈 25.1% / 박민식 25.3% / 미정 13.2%"],
                   ["연령대 가중치",   "통계청 연령대별 인구 비율 반영"],
                   ["동별 가중치",    "행정안전부 유권자 명부 기준"],
                 ].map(([k, v]) => (
