@@ -58,7 +58,7 @@ app.add_middleware(
 BASE_DIR          = os.path.dirname(os.path.abspath(__file__))
 DB_PATH           = Path(os.path.join(BASE_DIR, 'backend', 'data', 'personas.db'))
 POLL_HISTORY_PATH = Path(os.path.join(BASE_DIR, 'backend', 'data', 'poll_history.json'))
-CONTEXT_PATH      = Path(os.path.join(BASE_DIR, 'backend', 'data', 'context.md'))
+CONTEXT_DIR       = Path(os.path.join(BASE_DIR, 'backend', 'data'))
 
 import httpx._models as _httpx_models
 
@@ -159,7 +159,13 @@ def stratified_sample(n: int) -> list[dict]:
 def get_context() -> str:
     global _context
     if _context is None:
-        _context = CONTEXT_PATH.read_text(encoding="utf-8") if CONTEXT_PATH.exists() else ""
+        files = ["context_base.md", "context_polls.md", "context_daily.md", "context_issues.md", "context_static.md"]
+        parts = []
+        for fname in files:
+            p = CONTEXT_DIR / fname
+            if p.exists():
+                parts.append(p.read_text(encoding="utf-8"))
+        _context = "\n\n".join(parts)
     return _context
 
 

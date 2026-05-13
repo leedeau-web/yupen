@@ -5,6 +5,7 @@ import SurveyModal from "./components/SurveyModal";
 import PollTab from "./components/PollTab";
 import TrendTab from "./components/TrendTab";
 import AboutTab from "./components/AboutTab";
+import FlowTab from "./components/FlowTab";
 import { API_BASE } from "./config";
 
 const API = API_BASE;
@@ -14,6 +15,7 @@ const TABS = [
   { id: "voters", label: "유권자 목록" },
   { id: "poll",   label: "여론조사" },
   { id: "trend",  label: "민심동향 그래프" },
+  { id: "flow",   label: "실시간 유동인구" },
   { id: "about",  label: "유펜 소개" },
 ];
 
@@ -194,6 +196,7 @@ export default function App() {
 
       {tab === "poll" && <PollTab />}
       {tab === "trend" && <TrendTab />}
+      {tab === "flow" && <FlowTab />}
       {tab === "about" && <AboutTab />}
 
       {selectedVoter && (
