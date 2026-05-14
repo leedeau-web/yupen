@@ -11,6 +11,8 @@ const POLL_WEIGHTS = [
   { id: "5차", org: "한길리서치", method: "ARS", n: 584, rr: 5.3, period: "5/1~03", mW: 1, sW: 1, rrW: 0.9, tW: 1.4, score: 43, tier: "mid" },
   { id: "6차", org: "SBS/Ipsos", method: "면접", n: 503, rr: 14.4, period: "5/1~03", mW: 1.5, sW: 1, rrW: 1.1, tW: 1.4, score: 79, tier: "high" },
   { id: "7차", org: "JTBC/메타보이스", method: "면접", n: 501, rr: 15.1, period: "5/4~05", mW: 1.5, sW: 1, rrW: 1.4, tW: 1.4, score: 100, tier: "best" },
+  { id: "8차", org: "KBS부산/한국리서치", method: "ARS", n: 500, rr: 22.7, period: "5/8~10", mW: 1, sW: 1, rrW: 1.4, tW: 1.4, score: 67, tier: "mid" },
+  { id: "9차", org: "국제신문·리얼미터", method: "ARS", n: 506, rr: 8.7,  period: "5/9~10", mW: 1, sW: 1, rrW: 1.1, tW: 1.4, score: 52, tier: "mid" },
 ];
 
 const WEIGHT_RULES = [
@@ -63,10 +65,10 @@ const REFERENCE_DATA = [
     color: "border-sky-500/30 bg-sky-500/5",
     iconBg: "bg-sky-500/15 text-sky-400",
     items: [
-      "바로미터여론연구소 (5/3~4, n=1,042)",
-      "전재수 44.2% vs 박형준 41.0% 초박빙",
-      "3권역(북구 포함) 전재수 46.2% 우세",
-      "분리투표 패턴 — 40대 전재수 강세, 70대+ 박형준 강세",
+      "뉴스1·한국갤럽 (5/10~11, n=801, CATI, 응답률 14.7%)",
+      "전재수 43% vs 박형준 41% 오차범위 내 초박빙",
+      "3권역(강서·북구·사상·사하) 전재수 48% vs 박형준 33% (+15%p)",
+      "이재명 국정 긍정 63% — 3권역 70% (하정우·전재수 동반 기반)",
     ],
   },
   {
@@ -75,7 +77,7 @@ const REFERENCE_DATA = [
     color: "border-violet-500/30 bg-violet-500/5",
     iconBg: "bg-violet-500/15 text-violet-400",
     items: [
-      "5/1~5/8 일별 동향 누적 수집",
+      "5/1~5/14 부산 선거 동향 누적 수집",
       "부산일보·국제신문 주요 보도 추적",
       "후보 캠프 동향, 단일화 변수 실시간 반영",
       "손털기 논란 등 현안 이슈 수동 업데이트",
@@ -235,7 +237,7 @@ export default function AboutTab() {
           <p className="text-[10px] text-[var(--text)] opacity-50 leading-relaxed">
             유펜 v1.0<br />
             2026 북구갑<br />
-            1~7차 반영
+            1~9차 반영
           </p>
         </div>
       </nav>
@@ -305,8 +307,8 @@ export default function AboutTab() {
             <Section title="데이터 업데이트">
               <div className="bg-[var(--code-bg)] border border-[var(--border)] rounded-xl divide-y divide-[var(--border)]">
                 {[
-                  ["여론조사 반영", "1~7차 가중 통합 → personas.db 반영"],
-                  ["일별 동향",     "5/1~ 부산 선거 동향 누적 수집"],
+                  ["여론조사 반영", "부산 북구갑 여론조사 → personas.db 반영"],
+                  ["일별 동향",     "부산 선거 동향 누적 수집"],
                   ["부산시장 조사", "바로미터 등 시장 선거 여론조사 추가"],
                   ["DB 재생성",    "rebuild_db.py 실행 시 자동 가중치 계산"],
                 ].map(([k, v]) => (
@@ -325,7 +327,7 @@ export default function AboutTab() {
           <div>
             <div className="mb-8">
               <h2 className="text-xl font-bold text-[var(--text-h)] mb-1">여론조사 가중치 설계</h2>
-              <p className="text-sm text-[var(--text)]">1~7차 여론조사를 신뢰도에 비례해 가중 평균으로 통합합니다.</p>
+              <p className="text-sm text-[var(--text)]">1~9차 여론조사를 신뢰도에 비례해 가중 평균으로 통합합니다.</p>
             </div>
 
             <Section title="가중치 공식">
@@ -399,7 +401,7 @@ export default function AboutTab() {
               </p>
             </Section>
 
-            <Section title="가중 평균 결과 (1~7차, 연령대별)">
+            <Section title="가중 평균 결과 (1~9차, 연령대별)">
               <div className="bg-[var(--code-bg)] border border-[var(--border)] rounded-xl overflow-hidden">
                 <table className="w-full text-xs">
                   <thead>
@@ -414,12 +416,12 @@ export default function AboutTab() {
                   <tbody>
                     {
     [
-      ["18~29세", 28.5, 25.5, 23.6, 22.4],
-      ["30대", 23.9, 24.8, 29.2, 22.1],
-      ["40대", 52.7, 16.8, 19.3, 11.2],
-      ["50대", 45.6, 22.5, 24.1, 7.8],
-      ["60대", 39.1, 26.6, 23.4, 10.9],
-      ["70대+", 26.8, 31.7, 31.1, 10.4],
+      ["18~29세", 27.6, 25.4, 23.1, 23.9],
+      ["30대", 25.9, 25.7, 27.3, 21.0],
+      ["40대", 53.2, 17.5, 18.1, 11.2],
+      ["50대", 45.7, 22.7, 22.6, 8.9],
+      ["60대", 38.5, 28.1, 22.7, 10.8],
+      ["70대+", 26.5, 32.3, 29.5, 11.7],
     ].map(([band, h, k, p, m]) => (
                       <tr key={band} className="border-b border-[var(--border)] last:border-0">
                         <td className="px-4 py-2.5 font-semibold text-[var(--text-h)]">{band}</td>
@@ -486,12 +488,14 @@ export default function AboutTab() {
             </Section>
 
             <Section title="연령대별 분리투표 패턴">
+              <p className="text-[10px] text-[var(--text)] opacity-50 mb-2">출처: 뉴스1·한국갤럽 부산시장 조사 (5/10~11, n=801, CATI)</p>
               <div className="bg-[var(--code-bg)] border border-[var(--border)] rounded-xl divide-y divide-[var(--border)]">
                 {[
-                  ["40~50대", "시장 전재수 + 의원 하정우 동반 지지 가능성 높음 (민주 동반 강세)"],
-                  ["60대",    "시장 박형준 우세 + 의원 분리투표 성향 — '시장은 박형준, 의원은 고민'"],
-                  ["70대+",   "두 장 모두 보수 결집. 안보·질서 가치관 우선. 한동훈 최강세 연령대."],
-                  ["20~30대", "정당보다 후보 개인 이미지 중시. 부동층 비율 높음. 온라인 접근 효과적."],
+                  ["40~50대", "시장 전재수 62·61% 압도 — 의원 하정우 동반 지지 가능성 최고. 민주 투표블록 핵심."],
+                  ["60대",    "시장 박형준 53% 우세, 전재수 40%. 의원은 하정우 47.5% — 분리투표 성향 뚜렷."],
+                  ["70대+",   "시장 박형준 60%, 전재수 24%. 의원도 한동훈 30.2% 최강세. 보수 양장 동반 결집."],
+                  ["18~29세", "시장 박형준 35% > 전재수 29%. 의원은 부동층 높음. 온라인 이슈 민감."],
+                  ["30대",    "시장 전재수 42% > 박형준 35%. 의원 후보 개인 이미지 중시. 부동층 변동폭 큼."],
                 ].map(([age, desc]) => (
                   <div key={age} className="px-4 py-3 flex gap-4">
                     <span className="text-xs font-bold text-[var(--text-h)] w-16 shrink-0">{age}</span>
@@ -608,9 +612,9 @@ export default function AboutTab() {
               <div className="bg-[var(--code-bg)] border border-[var(--border)] rounded-xl divide-y divide-[var(--border)]">
                 {[
                   ["총 유권자 수",    "122,440명"],
-                  ["현재 poll_version", "7차 (JTBC/메타보이스 기준)"],
-                  ["마지막 업데이트", "2026-05-11"],
-                  ["지지후보 배분",   "하정우 36.4% / 한동훈 25.1% / 박민식 25.3% / 미정 13.2%"],
+                  ["현재 poll_version", "8차 (KBS부산/한국리서치 기준)"],
+                  ["마지막 업데이트", "2026-05-13"],
+                  ["지지후보 배분",   "하정우 36.4% / 한동훈 25.8% / 박민식 24.0% / 미정 13.7%"],
                   ["연령대 가중치",   "통계청 연령대별 인구 비율 반영"],
                   ["동별 가중치",    "행정안전부 유권자 명부 기준"],
                 ].map(([k, v]) => (
