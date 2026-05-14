@@ -4,21 +4,110 @@ import "leaflet/dist/leaflet.css";
 import "leaflet.heat";
 
 const SPOTS = [
-  { id:1,  name:"구포시장 입구",        dong:"구포1동",  lat:35.1978, lng:128.9913, icon:"🏪", tag:"전통시장·어르신",    base:{morning:32,afternoon:88,evening:62,night:12}, peak:[11,12,13,14,15,16], demo:"60대 26% · 50대 19%", src:"구포1동 실측" },
-  { id:2,  name:"덕천교차로·덕천역",    dong:"덕천2동",  lat:35.2046, lng:128.9977, icon:"🚇", tag:"환승거점·유세 1순위", base:{morning:72,afternoon:68,evening:95,night:25}, peak:[7,8,9,17,18,19],    demo:"60대 20% · 50대 19%", src:"덕천2동 실측" },
-  { id:3,  name:"만덕오거리",           dong:"만덕2동",  lat:35.2118, lng:129.0158, icon:"🔀", tag:"교통요충·차량노출",   base:{morning:55,afternoon:72,evening:82,night:18}, peak:[12,13,17,18,19],    demo:"60대 22% · 50대 18%", src:"만덕2동 보간" },
-  { id:4,  name:"구포역 광장",          dong:"구포2동",  lat:35.1942, lng:128.9889, icon:"🚂", tag:"기차·상인층",        base:{morning:65,afternoon:78,evening:58,night:14}, peak:[8,9,12,13,14,17,18],demo:"60대 23% · 50대 19%", src:"구포2동 실측" },
-  { id:5,  name:"만덕역·디지털도서관",  dong:"만덕2동",  lat:35.2155, lng:129.0218, icon:"📚", tag:"학부모·청년층",      base:{morning:42,afternoon:75,evening:68,night:12}, peak:[14,15,16,17],        demo:"60대 22% · 50대 18%", src:"만덕2동 실측" },
-  { id:6,  name:"덕천 젊음의 거리",     dong:"덕천3동",  lat:35.2038, lng:128.9998, icon:"🌆", tag:"상권·저녁피크",      base:{morning:28,afternoon:52,evening:92,night:48}, peak:[18,19,20,21],        demo:"60대 23% · 50대 18%", src:"덕천3동 실측" },
-  { id:7,  name:"만덕2동 아파트단지",   dong:"만덕2동",  lat:35.2138, lng:129.0235, icon:"🏘️", tag:"주거밀집·중장년",    base:{morning:58,afternoon:38,evening:72,night:15}, peak:[7,8,17,18,19],       demo:"60대 22% · 50대 18%", src:"만덕2동 실측" },
-  { id:8,  name:"구포도서관·과학체험관",dong:"구포3동",  lat:35.1958, lng:128.9935, icon:"🔬", tag:"학생·학부모",        base:{morning:25,afternoon:68,evening:32,night:8},  peak:[13,14,15,16],        demo:"60대 25% · 50대 20%", src:"구포3동 실측" },
-  { id:9,  name:"덕천1동 행정복지센터", dong:"덕천1동",  lat:35.2068, lng:129.0025, icon:"🏛️", tag:"원도심·소상공인",    base:{morning:72,afternoon:65,evening:38,night:10}, peak:[9,10,11,14,15],      demo:"60대 23% · 50대 19%", src:"덕천1동 실측" },
-  { id:10, name:"신만덕 그린코아 일대", dong:"만덕3동",  lat:35.2178, lng:129.0272, icon:"🏙️", tag:"대단지·저녁피크",    base:{morning:28,afternoon:32,evening:92,night:28}, peak:[17,18,19,20,21],     demo:"60대 21% · 50대 17%", src:"만덕3동 실측" },
-  { id:11, name:"구포2동 강변아파트",   dong:"구포2동",  lat:35.1995, lng:128.9878, icon:"🌊", tag:"수변·환경공약",      base:{morning:22,afternoon:48,evening:42,night:10}, peak:[14,15,16],           demo:"60대 23% · 50대 19%", src:"구포2동 실측" },
-  { id:12, name:"덕천2·3동 주공아파트", dong:"덕천2동",  lat:35.2052, lng:128.9988, icon:"🏠", tag:"시니어복지",         base:{morning:62,afternoon:55,evening:45,night:12}, peak:[9,10,11,14,15],      demo:"60대 20% · 50대 19%", src:"덕천2동 실측" },
-  { id:13, name:"만덕터널 입구",        dong:"만덕2동",  lat:35.2098, lng:129.0118, icon:"🚦", tag:"교통현안·차량유세",  base:{morning:78,afternoon:62,evening:85,night:22}, peak:[7,8,9,17,18,19],     demo:"60대 22% · 50대 18%", src:"만덕2동 보간" },
-  { id:14, name:"북구 문화예술회관",    dong:"구포1동",  lat:35.2002, lng:128.9908, icon:"🎭", tag:"문화·여가",          base:{morning:18,afternoon:58,evening:52,night:18}, peak:[14,15,16,19,20],     demo:"60대 26% · 50대 19%", src:"구포1동 실측" },
-  { id:15, name:"구포나루·화명생태공원",dong:"구포2동",  lat:35.2025, lng:128.9858, icon:"🌿", tag:"주말나들이",         base:{morning:15,afternoon:42,evening:35,night:8},  peak:[14,15,16],           demo:"60대 23% · 50대 19%", src:"구포2동 실측" },
+  { id:1,  name:"구포시장 입구",        dong:"구포1동",  lat:35.2087173, lng:129.0037777, icon:"🏪", tag:"전통시장·어르신",    base:{morning:32,afternoon:88,evening:62,night:12}, peak:[11,12,13,14,15,16], demo:"60대 26% · 50대 19%", src:"구포1동 실측" },
+  { id:2,  name:"덕천교차로·덕천역",    dong:"덕천2동",  lat:35.2105565, lng:129.0053895, icon:"🚇", tag:"환승거점·유세 1순위", base:{morning:72,afternoon:68,evening:95,night:25}, peak:[7,8,9,17,18,19],    demo:"60대 20% · 50대 19%", src:"덕천2동 실측" },
+  { id:3,  name:"만덕사거리",           dong:"만덕2동",  lat:35.212648, lng:129.038169, icon:"🔀", tag:"교통요충·차량노출",   base:{morning:55,afternoon:72,evening:82,night:18}, peak:[12,13,17,18,19],    demo:"60대 22% · 50대 18%", src:"만덕2동 보간" },
+  { id:4,  name:"구포역 광장",          dong:"구포2동",  lat:35.2058965, lng:128.9967412, icon:"🚂", tag:"기차·상인층",        base:{morning:65,afternoon:78,evening:58,night:14}, peak:[8,9,12,13,14,17,18],demo:"60대 23% · 50대 19%", src:"구포2동 실측" },
+  { id:5,  name:"만덕역·북구디지털도서관",  dong:"만덕2동",  lat:35.207321, lng:129.037949, icon:"📚", tag:"학부모·청년층",      base:{morning:42,afternoon:75,evening:68,night:12}, peak:[14,15,16,17],        demo:"60대 22% · 50대 18%", src:"만덕2동 실측" },
+  { id:6,  name:"덕천 젊음의 거리",     dong:"덕천3동",  lat:35.2090673, lng:129.0074052, icon:"🌆", tag:"상권·저녁피크",      base:{morning:28,afternoon:52,evening:92,night:48}, peak:[18,19,20,21],        demo:"60대 23% · 50대 18%", src:"덕천3동 실측" },
+  { id:7,  name:"백양 디 이스트",   dong:"만덕2동",  lat:35.2077475, lng:129.0340276, icon:"🏘️", tag:"주거밀집·중장년",    base:{morning:58,afternoon:38,evening:72,night:15}, peak:[7,8,17,18,19],       demo:"60대 22% · 50대 18%", src:"만덕2동 실측" },
+  { id:8,  name:"부산광역시립 구포도서관",dong:"구포3동",  lat:35.1940556, lng:128.9961356, icon:"🔬", tag:"학생·학부모",        base:{morning:25,afternoon:68,evening:32,night:8},  peak:[13,14,15,16],        demo:"60대 25% · 50대 20%", src:"구포3동 실측" },
+  { id:9,  name:"덕천1동 주민센터", dong:"덕천1동",  lat:35.2124107, lng:129.0166461, icon:"🏛️", tag:"원도심·소상공인",    base:{morning:72,afternoon:65,evening:38,night:10}, peak:[9,10,11,14,15],      demo:"60대 23% · 50대 19%", src:"덕천1동 실측" },
+  { id:10, name:"만덕 그린코아아파트", dong:"만덕3동",  lat:35.208328, lng:129.030312, icon:"🏙️", tag:"대단지·저녁피크",    base:{morning:28,afternoon:32,evening:92,night:28}, peak:[17,18,19,20,21],     demo:"60대 21% · 50대 17%", src:"만덕3동 실측" },
+  { id:11, name:"구포2동 행정복지센터",   dong:"구포2동",  lat:35.2011875, lng:128.9991465, icon:"🌊", tag:"수변·환경공약",      base:{morning:22,afternoon:48,evening:42,night:10}, peak:[14,15,16],           demo:"60대 23% · 50대 19%", src:"구포2동 실측" },
+  { id:12, name:"덕천 주공아파트", dong:"덕천2동",  lat:35.2091035, lng:129.0132495, icon:"🏠", tag:"시니어복지",         base:{morning:62,afternoon:55,evening:45,night:12}, peak:[9,10,11,14,15],      demo:"60대 20% · 50대 19%", src:"덕천2동 실측" },
+  { id:13, name:"만덕터널 입구",        dong:"만덕2동",  lat:35.2119925, lng:129.057504, icon:"🚦", tag:"교통현안·차량유세",  base:{morning:78,afternoon:62,evening:85,night:22}, peak:[7,8,9,17,18,19],     demo:"60대 22% · 50대 18%", src:"만덕2동 보간" },
+  { id:14, name:"부산북구 문화예술회관",    dong:"구포1동",  lat:35.2134491, lng:129.0054681, icon:"🎭", tag:"문화·여가",          base:{morning:18,afternoon:58,evening:52,night:18}, peak:[14,15,16,19,20],     demo:"60대 26% · 50대 19%", src:"구포1동 실측" },
+  { id:15, name:"구포나루축제광장",dong:"구포2동",  lat:35.2192634, lng:128.9999258, icon:"🌿", tag:"주말나들이",         base:{morning:15,afternoon:42,evening:35,night:8},  peak:[14,15,16],           demo:"60대 23% · 50대 19%", src:"구포2동 실측" },
+];
+
+// 북구갑 행정동 경계 폴리곤 (위성사진 실측 기반)
+const DONG_POLYGONS = [
+  {
+    // 구포1동: 서쪽은 강변도로(lng≈128.997) 기준으로 당김
+    name:"구포1동", color:"#3b82f6",
+    center:[35.2075, 129.0010],
+    coords:[
+      [35.2000,128.9970],[35.2005,128.9985],[35.2030,129.0005],
+      [35.2060,129.0025],[35.2090,129.0015],[35.2115,128.9985],
+      [35.2120,128.9950],[35.2095,128.9910],[35.2060,128.9900],
+      [35.2025,128.9890],[35.2000,128.9970],
+    ],
+  },
+  {
+    // 구포2동: 서쪽은 강변도로(lng≈128.993) 기준으로 당김
+    name:"구포2동", color:"#8b5cf6",
+    center:[35.2015, 128.9950],
+    coords:[
+      [35.1960,128.9930],[35.1960,128.9970],[35.1985,128.9960],
+      [35.2000,128.9970],[35.2025,128.9890],[35.2015,128.9870],
+      [35.1990,128.9850],[35.1960,128.9930],
+    ],
+  },
+  {
+    // 구포3동: 남쪽, 강변 동쪽
+    name:"구포3동", color:"#06b6d4",
+    center:[35.1950, 128.9995],
+    coords:[
+      [35.1960,128.9970],[35.1960,129.0080],[35.1985,129.0090],
+      [35.2005,129.0060],[35.2005,128.9985],[35.1985,128.9960],
+      [35.1960,128.9970],
+    ],
+  },
+  {
+    // 덕천1동: 중앙 동쪽
+    name:"덕천1동", color:"#f59e0b",
+    center:[35.2130, 129.0150],
+    coords:[
+      [35.2090,129.0015],[35.2060,129.0025],[35.2080,129.0080],
+      [35.2100,129.0130],[35.2120,129.0175],[35.2150,129.0160],
+      [35.2165,129.0120],[35.2155,129.0065],[35.2130,129.0025],
+      [35.2090,129.0015],
+    ],
+  },
+  {
+    // 덕천2동: 서쪽 강 경계 lng≈129.000 이상으로 당김
+    name:"덕천2동", color:"#22c55e",
+    center:[35.2145, 128.9990],
+    coords:[
+      [35.2120,128.9950],[35.2115,128.9985],[35.2090,129.0015],
+      [35.2130,129.0025],[35.2155,129.0065],[35.2170,129.0040],
+      [35.2185,129.0010],[35.2190,128.9970],[35.2175,128.9940],
+      [35.2150,128.9935],[35.2120,128.9950],
+    ],
+  },
+  {
+    // 덕천3동: 덕천역~젊음의거리 일대
+    name:"덕천3동", color:"#ef4444",
+    center:[35.2088, 129.0068],
+    coords:[
+      [35.2060,129.0025],[35.2080,129.0080],[35.2100,129.0130],
+      [35.2120,129.0175],[35.2090,129.0015],[35.2060,129.0025],
+    ],
+  },
+  {
+    // 만덕2동: 동쪽으로 충분히 확장 (lng≈129.060까지)
+    name:"만덕2동", color:"#a855f7",
+    center:[35.2130, 129.0420],
+    coords:[
+      [35.2080,129.0230],[35.2070,129.0310],[35.2085,129.0400],
+      [35.2110,129.0480],[35.2140,129.0510],[35.2165,129.0490],
+      [35.2180,129.0430],[35.2175,129.0340],[35.2155,129.0260],
+      [35.2140,129.0240],[35.2100,129.0190],[35.2080,129.0230],
+    ],
+  },
+  {
+    // 만덕3동: 북쪽 산지 일대
+    name:"만덕3동", color:"#14b8a6",
+    center:[35.2200, 129.0200],
+    coords:[
+      [35.2150,129.0160],[35.2120,129.0175],[35.2100,129.0190],
+      [35.2140,129.0240],[35.2155,129.0260],[35.2175,129.0340],
+      [35.2200,129.0280],[35.2220,129.0220],[35.2230,129.0130],
+      [35.2210,129.0050],[35.2185,129.0010],[35.2170,129.0040],
+      [35.2155,129.0065],[35.2165,129.0120],[35.2150,129.0160],
+    ],
+  },
 ];
 
 const THEMES = {
@@ -48,11 +137,34 @@ export default function FlowTab(){
 
   useEffect(()=>{
     if(!mapRef.current||leafRef.current)return;
-    const map=L.map(mapRef.current,{center:[35.2040,129.0050],zoom:14,zoomControl:false,attributionControl:false});
+    const map=L.map(mapRef.current,{center:[35.2070,129.0060],zoom:14,zoomControl:false,attributionControl:false});
     L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",{maxZoom:19}).addTo(map);
     const dl=L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}",{maxZoom:16,opacity:THEMES.light.mapOverlay}).addTo(map);
     darkLayRef.current=dl;
     L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Transportation/MapServer/tile/{z}/{y}/{x}",{maxZoom:19,opacity:0.5}).addTo(map);
+
+    // 동 경계 폴리곤 + 라벨
+    DONG_POLYGONS.forEach(dong=>{
+      L.polygon(dong.coords,{
+        color:dong.color,
+        weight:1.5,
+        opacity:0.7,
+        fillColor:dong.color,
+        fillOpacity:0.07,
+        dashArray:"4,4",
+      }).addTo(map);
+      L.marker(dong.center,{
+        icon:L.divIcon({
+          className:"",
+          iconSize:[64,20],
+          iconAnchor:[32,10],
+          html:`<div style="font-size:10px;font-weight:700;color:${dong.color};text-shadow:0 0 4px rgba(0,0,0,0.9),0 0 8px rgba(0,0,0,0.7);letter-spacing:0.5px;white-space:nowrap;text-align:center;pointer-events:none;">${dong.name}</div>`,
+        }),
+        interactive:false,
+        zIndexOffset:-1000,
+      }).addTo(map);
+    });
+
     L.control.zoom({position:"bottomright"}).addTo(map);
     L.control.attribution({position:"bottomleft",prefix:"ESRI | 부산 빅데이터 웨이브"}).addTo(map);
     leafRef.current=map;
