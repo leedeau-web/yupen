@@ -12,7 +12,7 @@ const POLL_WEIGHTS = [
   { id: "6차", org: "SBS/Ipsos", method: "면접", n: 503, rr: 14.4, period: "5/1~03", mW: 1.5, sW: 1, rrW: 1.1, tW: 1.4, score: 79, tier: "high" },
   { id: "7차", org: "JTBC/메타보이스", method: "면접", n: 501, rr: 15.1, period: "5/4~05", mW: 1.5, sW: 1, rrW: 1.4, tW: 1.4, score: 100, tier: "best" },
   { id: "8차", org: "KBS부산/한국리서치", method: "ARS", n: 500, rr: 22.7, period: "5/8~10", mW: 1, sW: 1, rrW: 1.4, tW: 1.4, score: 67, tier: "mid" },
-  { id: "9차", org: "국제신문·리얼미터", method: "ARS", n: 506, rr: 8.7,  period: "5/9~10", mW: 1, sW: 1, rrW: 1.1, tW: 1.4, score: 52, tier: "mid" },
+  { id: "9차", org: "국제신문·리얼미터", method: "ARS", n: 506, rr: 8.7, period: "5/9~10", mW: 1, sW: 1, rrW: 1.1, tW: 1.4, score: 52, tier: "mid" },
 ];
 
 const WEIGHT_RULES = [
@@ -416,12 +416,12 @@ export default function AboutTab() {
                   <tbody>
                     {
     [
-      ["18~29세", 27.6, 25.4, 23.1, 23.9],
-      ["30대", 25.9, 25.7, 27.3, 21.0],
-      ["40대", 53.2, 17.5, 18.1, 11.2],
-      ["50대", 45.7, 22.7, 22.6, 8.9],
-      ["60대", 38.5, 28.1, 22.7, 10.8],
-      ["70대+", 26.5, 32.3, 29.5, 11.7],
+      ["18~29세", 27.5, 26.3, 22.6, 23.6],
+      ["30대", 27.2, 26.4, 26.3, 20.1],
+      ["40대", 53.4, 18.0, 18.1, 10.5],
+      ["50대", 45.7, 23.2, 22.6, 8.5],
+      ["60대", 39.4, 27.9, 22.5, 10.2],
+      ["70대+", 27.4, 32.1, 29.4, 11.1],
     ].map(([band, h, k, p, m]) => (
                       <tr key={band} className="border-b border-[var(--border)] last:border-0">
                         <td className="px-4 py-2.5 font-semibold text-[var(--text-h)]">{band}</td>
@@ -612,9 +612,9 @@ export default function AboutTab() {
               <div className="bg-[var(--code-bg)] border border-[var(--border)] rounded-xl divide-y divide-[var(--border)]">
                 {[
                   ["총 유권자 수",    "122,440명"],
-                  ["현재 poll_version", "8차 (KBS부산/한국리서치 기준)"],
-                  ["마지막 업데이트", "2026-05-13"],
-                  ["지지후보 배분",   "하정우 36.4% / 한동훈 25.8% / 박민식 24.0% / 미정 13.7%"],
+                  ["현재 poll_version", "9차 (국제신문·리얼미터 기준)"],
+                  ["마지막 업데이트", "2026-05-14"],
+                  ["지지후보 배분",   "하정우 37.0% / 한동훈 26.1% / 박민식 23.8% / 미정 13.1%"],
                   ["연령대 가중치",   "통계청 연령대별 인구 비율 반영"],
                   ["동별 가중치",    "행정안전부 유권자 명부 기준"],
                 ].map(([k, v]) => (
