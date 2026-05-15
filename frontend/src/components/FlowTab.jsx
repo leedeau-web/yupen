@@ -60,8 +60,8 @@ const SPOTS = [
   { id:12, dong:"덕천2동", lat:35.2091035, lng:129.0132495, icon:"🏠", name:"덕천 주공아파트",      tag:"시니어·장기거주" },
   { id:13, dong:"만덕2동", lat:35.2119925, lng:129.057504,  icon:"🚦", name:"만덕터널 입구",        tag:"출퇴근 차량 유세" },
   { id:14, dong:"구포1동", lat:35.2134491, lng:129.0054681, icon:"🎭", name:"북구 문화예술회관",    tag:"문화·여가 행사" },
-  { id:15, dong:"구포2동", lat:35.2192634, lng:128.9999258, icon:"🌿", name:"구포나루축제광장",     tag:"주말 나들이·환경" },
-  { id:18, dong:"만덕3동", lat:35.214364,  lng:129.031414,  icon:"🏫", name:"만덕초등학교 앞",      tag:"학부모·어린이 등하교" }];
+  { id:15, dong:"구포1동", lat:35.212447,  lng:128.999273, icon:"🌉", name:"금빛노을브릿지",       tag:"낙동강 랜드마크·나들이" },
+  { id:18, dong:"만덕2동", lat:35.214364,  lng:129.031414,  icon:"🏫", name:"만덕초등학교 앞",      tag:"학부모·어린이 등하교" }];
 
 // 동별 추천 동선 (시간대별)
 const ROUTES = {
@@ -163,33 +163,30 @@ export default function FlowTab(){
   useEffect(()=>{
     const map=leafRef.current;if(!map)return;
     if(heatRef.current){if(Array.isArray(heatRef.current)){heatRef.current.forEach(l=>l.remove());}else{heatRef.current.remove();}heatRef.current=null;}
-    // 동별 밀집도 원형 레이어 (히트맵 대체 — 밀집도 색상 직접 표시)
+    // 동별 밀집도 — 열상카메라 페이드아웃 (바깥 극히 흐림→중심 진함)
     Object.entries(DONG_DATA).forEach(([name,d])=>{
       const density=getDongDensity(name,hour);
       const c=dc(density);
-      const r = 900 + density * 12; // 밀집도 높을수록 원 크게
-      const circle = L.circle(d.heatPos, {
-        radius: r,
-        color: c.hex,
-        weight: 0,
-        fillColor: c.hex,
-        fillOpacity: 0.22,
-      }).addTo(map);
-      // 중심 진한 원
-      const inner = L.circle(d.heatPos, {
-        radius: r * 0.45,
-        color: c.hex,
-        weight: 0,
-        fillColor: c.hex,
-        fillOpacity: 0.45,
-      }).addTo(map);
-      if(!heatRef.current) heatRef.current = [];
-      heatRef.current.push(circle, inner);
+      // 덕천3동은 겹침 방지용 작게
+      const baseR = name==="덕천3동" ? 300 + density*4 : 550 + density*7;
+      [
+        {scale:1.00, opacity:0.03},  // 바깥 — 거의 안보임
+        {scale:0.70, opacity:0.07},  // 중간 바깥
+        {scale:0.45, opacity:0.14},  // 중간
+        {scale:0.22, opacity:0.30},  // 중심
+      ].forEach(({scale,opacity})=>{
+        const l=L.circle(d.heatPos,{
+          radius:baseR*scale, color:"transparent", weight:0,
+          fillColor:c.hex, fillOpacity:opacity,
+        }).addTo(map);
+        if(!heatRef.current) heatRef.current=[];
+        heatRef.current.push(l);
+      });
     });
     dongLabelsRef.current.forEach(m=>m.remove());dongLabelsRef.current=[];
     Object.entries(DONG_DATA).forEach(([name,d])=>{
       const density=getDongDensity(name,hour),c=dc(density),isSel=selDong===name;
-      const m=L.marker(d.labelPos,{icon:L.divIcon({className:"",iconSize:[80,28],iconAnchor:[40,14],html:`<div style="text-align:center;pointer-events:auto;cursor:pointer;"><div style="font-size:11px;font-weight:800;color:${isSel?c.hex:d.color};text-shadow:0 0 6px rgba(0,0,0,1),0 0 12px rgba(0,0,0,0.9);letter-spacing:0.5px;white-space:nowrap;">${name}</div><div style="font-size:9px;font-weight:700;color:${c.hex};text-shadow:0 0 4px rgba(0,0,0,1);margin-top:1px;">${density}%</div></div>`}),interactive:true,zIndexOffset:-500}).addTo(map).on("click",()=>{setSelDong(p=>p===name?null:name);setSelSpotId(null);setShowRoute(false);setPanelTab("dong");});
+      const m=L.marker(d.labelPos,{icon:L.divIcon({className:"",iconSize:[80,28],iconAnchor:[40,14],html:`<div style="text-align:center;pointer-events:auto;cursor:pointer;"><div style="width:52px;height:52px;border-radius:50%;background:${c.hex};opacity:0.82;display:flex;flex-direction:column;align-items:center;justify-content:center;box-shadow:0 0 0 6px ${c.hex}44,0 0 0 12px ${c.hex}22,0 0 0 20px ${c.hex}0a"><span style="font-size:10px;font-weight:800;color:#fff;white-space:nowrap;line-height:1.3;text-shadow:0 1px 2px rgba(0,0,0,0.3)">${name}</span><span style="font-size:9px;font-weight:700;color:rgba(255,255,255,0.92);line-height:1.2;">${density}%</span></div></div>`}),interactive:true,zIndexOffset:-500}).addTo(map).on("click",()=>{setSelDong(p=>p===name?null:name);setSelSpotId(null);setShowRoute(false);setPanelTab("dong");});
       dongLabelsRef.current.push(m);
     });
     Object.values(spotMarkersRef.current).forEach(m=>m.remove());spotMarkersRef.current={};

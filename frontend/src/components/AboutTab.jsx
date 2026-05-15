@@ -13,6 +13,8 @@ const POLL_WEIGHTS = [
   { id: "7차", org: "JTBC/메타보이스", method: "면접", n: 501, rr: 15.1, period: "5/4~05", mW: 1.5, sW: 1, rrW: 1.4, tW: 1.4, score: 100, tier: "best" },
   { id: "8차", org: "KBS부산/한국리서치", method: "ARS", n: 500, rr: 22.7, period: "5/8~10", mW: 1, sW: 1, rrW: 1.4, tW: 1.4, score: 67, tier: "mid" },
   { id: "9차", org: "국제신문·리얼미터", method: "ARS", n: 506, rr: 8.7, period: "5/9~10", mW: 1, sW: 1, rrW: 1.1, tW: 1.4, score: 52, tier: "mid" },
+  { id: "10차", org: "한길리서치", method: "ARS", n: 501, rr: 9.6, period: "5/11~12", mW: 1, sW: 1, rrW: 1.1, tW: 1.4, score: 52, tier: "mid" },
+  { id: "11차", org: "뉴스1·한국갤럽", method: "면접", n: 508, rr: 11.3, period: "5/12~13", mW: 1.5, sW: 1, rrW: 1.1, tW: 1.4, score: 79, tier: "high" },
 ];
 
 const WEIGHT_RULES = [
@@ -237,7 +239,7 @@ export default function AboutTab() {
           <p className="text-[10px] text-[var(--text)] opacity-50 leading-relaxed">
             유펜 v1.0<br />
             2026 북구갑<br />
-            1~9차 반영
+            1~11차 반영
           </p>
         </div>
       </nav>
@@ -276,6 +278,7 @@ export default function AboutTab() {
                   { icon: "📞", title: "여론조사 시뮬레이션", desc: "층화추출 + Claude AI 개별 응답 생성" },
                   { icon: "📈", title: "민심동향 그래프", desc: "일별 지지율 추이 시각화" },
                   { icon: "📋", title: "배치 심층 인터뷰", desc: "복수 유권자 대상 동시 질의 분석" },
+                  { icon: "📍", title: "유세 포인트", desc: "부산 빅데이터 웨이브 2019~2025 실측 방문인구 기반 동별 유동인구 밀집도 시각화 · 북구갑 8개 행정동 시간대별 혼잡도 · 유세 포인트 16개 위치 및 동선 추천" },
                 ].map(f => (
                   <div key={f.title} className="bg-[var(--code-bg)] border border-[var(--border)] rounded-xl p-4">
                     <div className="text-xl mb-2">{f.icon}</div>
@@ -327,7 +330,7 @@ export default function AboutTab() {
           <div>
             <div className="mb-8">
               <h2 className="text-xl font-bold text-[var(--text-h)] mb-1">여론조사 가중치 설계</h2>
-              <p className="text-sm text-[var(--text)]">1~9차 여론조사를 신뢰도에 비례해 가중 평균으로 통합합니다.</p>
+              <p className="text-sm text-[var(--text)]">1~11차 여론조사를 신뢰도에 비례해 가중 평균으로 통합합니다.</p>
             </div>
 
             <Section title="가중치 공식">
@@ -401,7 +404,7 @@ export default function AboutTab() {
               </p>
             </Section>
 
-            <Section title="가중 평균 결과 (1~9차, 연령대별)">
+            <Section title="가중 평균 결과 (1~11차, 연령대별)">
               <div className="bg-[var(--code-bg)] border border-[var(--border)] rounded-xl overflow-hidden">
                 <table className="w-full text-xs">
                   <thead>
@@ -416,12 +419,12 @@ export default function AboutTab() {
                   <tbody>
                     {
     [
-      ["18~29세", 27.5, 26.3, 22.6, 23.6],
-      ["30대", 27.2, 26.4, 26.3, 20.1],
-      ["40대", 53.4, 18.0, 18.1, 10.5],
-      ["50대", 45.7, 23.2, 22.6, 8.5],
-      ["60대", 39.4, 27.9, 22.5, 10.2],
-      ["70대+", 27.4, 32.1, 29.4, 11.1],
+      ["18~29세", 28.1, 26.1, 22.6, 23.2],
+      ["30대", 28.3, 25.8, 26.9, 19.0],
+      ["40대", 52.6, 20.0, 17.5, 9.9],
+      ["50대", 45.6, 24.9, 22.1, 7.5],
+      ["60대", 38.9, 29.2, 22.9, 9.0],
+      ["70대+", 28.3, 32.3, 28.7, 10.7],
     ].map(([band, h, k, p, m]) => (
                       <tr key={band} className="border-b border-[var(--border)] last:border-0">
                         <td className="px-4 py-2.5 font-semibold text-[var(--text-h)]">{band}</td>
@@ -612,9 +615,9 @@ export default function AboutTab() {
               <div className="bg-[var(--code-bg)] border border-[var(--border)] rounded-xl divide-y divide-[var(--border)]">
                 {[
                   ["총 유권자 수",    "122,440명"],
-                  ["현재 poll_version", "9차 (국제신문·리얼미터 기준)"],
-                  ["마지막 업데이트", "2026-05-14"],
-                  ["지지후보 배분",   "하정우 37.0% / 한동훈 26.1% / 박민식 23.8% / 미정 13.1%"],
+                  ["현재 poll_version", "11차 (뉴스1·한국갤럽 기준)"],
+                  ["마지막 업데이트", "2026-05-15"],
+                  ["지지후보 배분",   "하정우 37.1% / 한동훈 26.9% / 박민식 23.6% / 미정 12.3%"],
                   ["연령대 가중치",   "통계청 연령대별 인구 비율 반영"],
                   ["동별 가중치",    "행정안전부 유권자 명부 기준"],
                 ].map(([k, v]) => (

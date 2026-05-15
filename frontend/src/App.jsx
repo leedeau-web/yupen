@@ -15,7 +15,7 @@ const TABS = [
   { id: "voters", label: "유권자 목록" },
   { id: "poll",   label: "여론조사" },
   { id: "trend",  label: "민심동향 그래프" },
-  { id: "flow",   label: "실시간 유동인구" },
+  { id: "flow",   label: "유세 포인트" },
   { id: "about",  label: "유펜 소개" },
 ];
 
