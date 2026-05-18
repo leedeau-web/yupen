@@ -11,7 +11,7 @@ const Database = require('better-sqlite3');
 const TOTAL       = 122440;
 const DB_PATH     = path.join(__dirname, 'personas.db');
 const POLL_VERSION = 11;
-const LAST_UPDATED = '2026-05-15';
+const LAST_UPDATED = '2026-05-18';
 
 // ── 유틸 ──────────────────────────────────────────────────────────────────────
 const pick      = (arr) => arr[Math.floor(Math.random() * arr.length)];
@@ -149,11 +149,12 @@ const getApprovalLJM = (orientation) => {
 };
 
 const getBusanMayorPref = (candidate) => {
-  // 전체 목표: 전재수 51% / 박형준 31% / 미정 18%
-  if (candidate === '하정우')  return pickW(['전재수', '박형준', '미정'], [85, 5,  10]);
-  if (candidate === '한동훈')  return pickW(['전재수', '박형준', '미정'], [30, 48, 22]);
-  if (candidate === '박민식')  return pickW(['전재수', '박형준', '미정'], [23, 56, 21]);
-  return                              pickW(['전재수', '박형준', '미정'], [55, 20, 25]); // 미정
+  // 갤럽·여론조사꽃·펜앤마이크 6~8차 3권역(북구·사하·강서·사상) 종합 보정
+  // 전재수 45~48% / 박형준 33~40% / 미정 → 중도층 접전 반영
+  if (candidate === '하정우')  return pickW(['전재수', '박형준', '미정'], [92, 3,   5]);
+  if (candidate === '한동훈')  return pickW(['전재수', '박형준', '미정'], [15, 65, 20]);
+  if (candidate === '박민식')  return pickW(['전재수', '박형준', '미정'], [10, 72, 18]);
+  return                              pickW(['전재수', '박형준', '미정'], [43, 37, 20]); // 미정: 3권역 중도층 접전
 };
 
 // ── ① 연령×후보 그룹 (1~11차 가중평균, 합계 122,440) ─────────────
