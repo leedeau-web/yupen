@@ -79,7 +79,7 @@ const REFERENCE_DATA = [
     color: "border-violet-500/30 bg-violet-500/5",
     iconBg: "bg-violet-500/15 text-violet-400",
     items: [
-      "5/1~5/14 부산 선거 동향 누적 수집",
+      "5/1~5/18 부산 선거 동향 누적 수집",
       "부산일보·국제신문 주요 보도 추적",
       "후보 캠프 동향, 단일화 변수 실시간 반영",
       "손털기 논란 등 현안 이슈 수동 업데이트",
