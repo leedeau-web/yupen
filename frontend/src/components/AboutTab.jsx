@@ -4,17 +4,24 @@ import { API_BASE } from "../config";
 // ── 데이터 ────────────────────────────────────────────────────────────────────
 
 const POLL_WEIGHTS = [
-  { id: "1차", org: "KOPRA/한국여론평판연구소", method: "ARS", n: 505, rr: 4.2, period: "4/19~20", mW: 1, sW: 1, rrW: 0.7, tW: 0.7, score: 17, tier: "low" },
-  { id: "2차", org: "미디어토마토", method: "ARS", n: 802, rr: 9, period: "4/24~25", mW: 1, sW: 1.3, rrW: 1.1, tW: 1, score: 49, tier: "mid" },
-  { id: "3차", org: "여론조사꽃", method: "ARS", n: 503, rr: 8.6, period: "4/26~27", mW: 1, sW: 1, rrW: 1.1, tW: 1, score: 37, tier: "mid" },
-  { id: "4차", org: "KBS부산/한국리서치", method: "면접", n: 500, rr: 23.3, period: "4/27~28", mW: 1.5, sW: 1, rrW: 1.4, tW: 1, score: 71, tier: "high" },
-  { id: "5차", org: "한길리서치", method: "ARS", n: 584, rr: 5.3, period: "5/1~03", mW: 1, sW: 1, rrW: 0.9, tW: 1.4, score: 43, tier: "mid" },
-  { id: "6차", org: "SBS/Ipsos", method: "면접", n: 503, rr: 14.4, period: "5/1~03", mW: 1.5, sW: 1, rrW: 1.1, tW: 1.4, score: 79, tier: "high" },
-  { id: "7차", org: "JTBC/메타보이스", method: "면접", n: 501, rr: 15.1, period: "5/4~05", mW: 1.5, sW: 1, rrW: 1.4, tW: 1.4, score: 100, tier: "best" },
-  { id: "8차", org: "KBS부산/한국리서치", method: "ARS", n: 500, rr: 22.7, period: "5/8~10", mW: 1, sW: 1, rrW: 1.4, tW: 1.4, score: 67, tier: "mid" },
-  { id: "9차", org: "국제신문·리얼미터", method: "ARS", n: 506, rr: 8.7, period: "5/9~10", mW: 1, sW: 1, rrW: 1.1, tW: 1.4, score: 52, tier: "mid" },
-  { id: "10차", org: "한길리서치", method: "ARS", n: 501, rr: 9.6, period: "5/11~12", mW: 1, sW: 1, rrW: 1.1, tW: 1.4, score: 52, tier: "mid" },
-  { id: "11차", org: "뉴스1·한국갤럽", method: "면접", n: 508, rr: 11.3, period: "5/12~13", mW: 1.5, sW: 1, rrW: 1.1, tW: 1.4, score: 79, tier: "high" },
+  { id: "1차", org: "KOPRA/한국여론평판연구소", method: "ARS", n: 505, rr: 4.2, period: "4/19~20", mW: 1, sW: 1, rrW: 0.7, tW: 0.7, score: 19, tier: "low" },
+  { id: "2차", org: "미디어토마토", method: "ARS", n: 802, rr: 9, period: "4/24~25", mW: 1, sW: 1.3, rrW: 1.1, tW: 0.8, score: 45, tier: "mid" },
+  { id: "3차", org: "여론조사꽃", method: "ARS", n: 503, rr: 8.6, period: "4/26~27", mW: 1, sW: 1, rrW: 1.1, tW: 0.8, score: 35, tier: "low" },
+  { id: "4차", org: "KBS부산/한국리서치", method: "면접", n: 500, rr: 23.3, period: "4/27~28", mW: 1.5, sW: 1, rrW: 1.4, tW: 0.8, score: 67, tier: "mid" },
+  { id: "5차", org: "한길리서치", method: "ARS", n: 584, rr: 5.3, period: "5/1~03", mW: 1, sW: 1, rrW: 0.9, tW: 1.1, score: 39, tier: "mid" },
+  { id: "6차", org: "SBS/Ipsos", method: "면접", n: 503, rr: 14.4, period: "5/1~03", mW: 1.5, sW: 1, rrW: 1.1, tW: 1.1, score: 72, tier: "high" },
+  { id: "7차", org: "JTBC/메타보이스", method: "면접", n: 501, rr: 15.1, period: "5/4~05", mW: 1.5, sW: 1, rrW: 1.4, tW: 1.1, score: 92, tier: "high" },
+  { id: "8차", org: "KBS부산/한국리서치", method: "ARS", n: 500, rr: 22.7, period: "5/8~10", mW: 1, sW: 1, rrW: 1.4, tW: 1.4, score: 78, tier: "high" },
+  { id: "9차", org: "국제신문·리얼미터", method: "ARS", n: 506, rr: 8.7, period: "5/9~10", mW: 1, sW: 1, rrW: 1.1, tW: 1.4, score: 61, tier: "mid" },
+  { id: "10차", org: "한길리서치", method: "ARS", n: 501, rr: 9.6, period: "5/11~12", mW: 1, sW: 1, rrW: 1.1, tW: 1.4, score: 61, tier: "mid" },
+  { id: "11차", org: "뉴스1·한국갤럽", method: "면접", n: 508, rr: 11.3, period: "5/12~13", mW: 1.5, sW: 1, rrW: 1.1, tW: 1.4, score: 92, tier: "high" },
+  { id: "12차", org: "여론조사꽃", method: "ARS", n: 502, rr: 9.2, period: "5/14~15", mW: 1, sW: 1, rrW: 1.1, tW: 1.4, score: 61, tier: "mid" },
+  { id: "13차", org: "조선일보/메트릭스", method: "ARS", n: 501, rr: 16.5, period: "5/16~17", mW: 1, sW: 1, rrW: 1.4, tW: 1.8, score: 100, tier: "best" },
+  { id: "14차", org: "MBC/코리아리서치", method: "ARS", n: 500, rr: 14.5, period: "5/16~18", mW: 1, sW: 1, rrW: 1.1, tW: 1.8, score: 79, tier: "high" },
+  { id: "15차", org: "뉴시스/에이스리서치", method: "ARS", n: 504, rr: 9, period: "5/17~18", mW: 1, sW: 1, rrW: 1.1, tW: 1.8, score: 79, tier: "high" },
+  { id: "16차", org: "펜앤마이크/여론조사공정", method: "ARS", n: 501, rr: 9.4, period: "5/18~19", mW: 1, sW: 1, rrW: 1.1, tW: 1.8, score: 79, tier: "high" },
+  { id: "17차", org: "중앙일보/케이스탯", method: "ARS", n: 505, rr: 13.1, period: "5/17~19", mW: 1, sW: 1, rrW: 1.1, tW: 1.8, score: 79, tier: "high" },
+  { id: "18차", org: "채널A/리서치앤리서치", method: "ARS", n: 500, rr: 10, period: "5/17~19", mW: 1, sW: 1, rrW: 1.1, tW: 1.8, score: 79, tier: "high" },
 ];
 
 const WEIGHT_RULES = [
@@ -53,9 +60,11 @@ const WEIGHT_RULES = [
     icon: "🕐",
     weight: "25%",
     items: [
-      { cond: "5월 이후",    val: "×1.4", color: "text-emerald-400", reason: "3자 구도 확정 후" },
-      { cond: "4월 24일~",  val: "×1.0", color: "text-[var(--text)]", reason: "하정우 출마 이후" },
-      { cond: "~4월 23일",  val: "×0.7", color: "text-orange-400", reason: "한동훈 출마 前" },
+      { cond: "5/15 이후",   val: "×1.8", color: "text-emerald-400", reason: "한동훈 급등 국면 — 최근 판세 직접 반영" },
+      { cond: "5/8~14",     val: "×1.4", color: "text-sky-400", reason: "3자 구도 안정기" },
+      { cond: "5/1~7",      val: "×1.1", color: "text-[var(--text)]", reason: "3자 구도 초기, 현 판세와 차이" },
+      { cond: "4/24~30",    val: "×0.8", color: "text-orange-400", reason: "한동훈 출마 전후 혼란기" },
+      { cond: "~4/23",      val: "×0.7", color: "text-red-400", reason: "한동훈 출마 前" },
     ],
   },
 ];
@@ -67,10 +76,10 @@ const REFERENCE_DATA = [
     color: "border-sky-500/30 bg-sky-500/5",
     iconBg: "bg-sky-500/15 text-sky-400",
     items: [
-      "6~8차 연속 조사 (5/10~14): 부산 전체 전재수 43~48% / 박형준 38~41%",
-      "3권역(강서·북구·사상·사하) 전재수 44.6~48% / 박형준 33~41% (CATI·ARS 방법론 편차)",
-      "40~50대 전재수 +30%p 압도, 60대 동률, 70대+ 박형준 +20~27%p",
-      "이재명 국정 긍정 부산 58~63% — 3권역 54~70% (하정우·전재수 동반 기반)",
+      "9~14차 (5/16~19, 6건): 전재수 42~50% / 박형준 29~41% — 전재수 우위 지속",
+      "3권역(강서·북·사상, 북구 포함): 전재수 44~49% / 박형준 29~39% — 북구갑 기반 안정",
+      "40~50대 전재수 압도, 60대 동률~접전, 70대+ 박형준 우세, 18~29세 박형준 우세",
+      "박형준 지지강도(79%) < 전재수(87%) — 사전투표 민주 지지자 집중, 지선 프레임 여당 우세",
     ],
   },
   {
@@ -79,7 +88,7 @@ const REFERENCE_DATA = [
     color: "border-violet-500/30 bg-violet-500/5",
     iconBg: "bg-violet-500/15 text-violet-400",
     items: [
-      "5/1~5/18 부산 선거 동향 누적 수집",
+      "5/1~5/22 부산 선거 동향 누적 수집",
       "부산일보·국제신문 주요 보도 추적",
       "후보 캠프 동향, 단일화 변수 실시간 반영",
       "손털기 논란 등 현안 이슈 수동 업데이트",
@@ -95,6 +104,9 @@ const REFERENCE_DATA = [
       "한동훈 예비후보 등록 (5/5)",
       "박민식 국힘 후보 확정 (5/6)",
       "보수 단일화 변수 — 분수령 미결",
+      "[5/20] 3자구도 하정우 유리·보수 셈법 복잡·하 주식파킹 의혹 반박·시장 혼전",
+      "[5/21] 공식 선거운동 시작·출정식·시장 전재수46%vs박형준40% 오차범위 접전",
+      "[5/22] 한동훈 상승세·朴韓 배신자 정면충돌·하 보수분열 파고들기·집토끼 흔들림",
     ],
   },
 ];
@@ -239,7 +251,7 @@ export default function AboutTab() {
           <p className="text-[10px] text-[var(--text)] opacity-50 leading-relaxed">
             유펜 v1.0<br />
             2026 북구갑<br />
-            1~11차 반영
+            1~18차 · 최신성 가중치 개선
           </p>
         </div>
       </nav>
@@ -330,7 +342,7 @@ export default function AboutTab() {
           <div>
             <div className="mb-8">
               <h2 className="text-xl font-bold text-[var(--text-h)] mb-1">여론조사 가중치 설계</h2>
-              <p className="text-sm text-[var(--text)]">1~11차 여론조사를 신뢰도에 비례해 가중 평균으로 통합합니다.</p>
+              <p className="text-sm text-[var(--text)]">1~18차 여론조사를 신뢰도에 비례해 가중 평균으로 통합합니다. 5/15 이후 최근 조사에 x1.8 최신성 가중치 적용.</p>
             </div>
 
             <Section title="가중치 공식">
@@ -338,7 +350,7 @@ export default function AboutTab() {
                 <p className="text-sm font-mono text-[var(--text-h)]">
                   종합점수 = <span className="text-sky-400">조사방법</span> × <span className="text-violet-400">표본크기</span> × <span className="text-amber-400">응답률</span> × <span className="text-emerald-400">최신성</span>
                 </p>
-                <p className="text-xs text-[var(--text)] mt-2 opacity-60">→ 최고점(JTBC/메타보이스 100점) 기준으로 정규화 후 가중 평균 산출</p>
+                <p className="text-xs text-[var(--text)] mt-2 opacity-60">→ 최고점 기준 정규화 후 가중 평균 산출 · 5/15 이후(12~18차) tW=×1.8 적용</p>
               </div>
             </Section>
 
@@ -404,7 +416,7 @@ export default function AboutTab() {
               </p>
             </Section>
 
-            <Section title="가중 평균 결과 (1~11차, 연령대별)">
+            <Section title="가중 평균 결과 (1~18차, 최신성 개선 반영)">
               <div className="bg-[var(--code-bg)] border border-[var(--border)] rounded-xl overflow-hidden">
                 <table className="w-full text-xs">
                   <thead>
@@ -419,12 +431,12 @@ export default function AboutTab() {
                   <tbody>
                     {
     [
-      ["18~29세", 28.1, 26.1, 22.6, 23.2],
-      ["30대", 28.3, 25.8, 26.9, 19.0],
-      ["40대", 52.6, 20.0, 17.5, 9.9],
-      ["50대", 45.6, 24.9, 22.1, 7.5],
-      ["60대", 38.9, 29.2, 22.9, 9.0],
-      ["70대+", 28.3, 32.3, 28.7, 10.7],
+      ["18~29세", 30.4, 25.4, 22.3, 21.9],
+      ["30대", 32.4, 26.7, 24.7, 16.2],
+      ["40대", 52.6, 23.2, 14.6, 9.7],
+      ["50대", 44.9, 27.7, 21.5, 5.9],
+      ["60대", 37.1, 33.3, 22.8, 6.9],
+      ["70대+", 27.8, 36.2, 26.4, 9.5],
     ].map(([band, h, k, p, m]) => (
                       <tr key={band} className="border-b border-[var(--border)] last:border-0">
                         <td className="px-4 py-2.5 font-semibold text-[var(--text-h)]">{band}</td>
@@ -615,9 +627,9 @@ export default function AboutTab() {
               <div className="bg-[var(--code-bg)] border border-[var(--border)] rounded-xl divide-y divide-[var(--border)]">
                 {[
                   ["총 유권자 수",    "122,440명"],
-                  ["현재 poll_version", "11차 (뉴스1·한국갤럽 기준)"],
-                  ["마지막 업데이트", "2026-05-18"],
-                  ["지지후보 배분",   "하정우 37.1% / 한동훈 26.9% / 박민식 23.6% / 미정 12.3%"],
+                  ["현재 poll_version", "18차 (채널A/리서치앤리서치 기준)"],
+                  ["마지막 업데이트", "2026-05-22"],
+                  ["지지후보 배분",   "하정우 37.3% / 한동훈 29.6% / 박민식 22.3% / 미정 10.8%"],
                   ["연령대 가중치",   "통계청 연령대별 인구 비율 반영"],
                   ["동별 가중치",    "행정안전부 유권자 명부 기준"],
                 ].map(([k, v]) => (

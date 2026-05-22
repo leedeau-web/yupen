@@ -66,7 +66,11 @@ function calcWeights(surveys) {
     }
     const rrW = rr >= 15 ? 1.4 : rr >= 8 ? 1.1 : rr >= 5 ? 0.9 : 0.7;
     const [, mo, dy] = s.period.split('~')[0].split('-').map(Number);
-    const tW  = mo >= 5 ? 1.4 : (mo === 4 && dy >= 24) ? 1.0 : 0.7;
+    const tW  = (mo === 5 && dy >= 15) ? 1.8
+              : (mo === 5 && dy >= 8)  ? 1.4
+              : (mo === 5)             ? 1.1
+              : (mo === 4 && dy >= 24) ? 0.8
+              : 0.7;
     return { mW, sW, rr, rrW, tW, raw: +(mW * sW * rrW * tW).toFixed(4) };
   });
 
