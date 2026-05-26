@@ -22,6 +22,9 @@ const POLL_WEIGHTS = [
   { id: "16차", org: "펜앤마이크/여론조사공정", method: "ARS", n: 501, rr: 9.4, period: "5/18~19", mW: 1, sW: 1, rrW: 1.1, tW: 1.8, score: 79, tier: "high" },
   { id: "17차", org: "중앙일보/케이스탯", method: "ARS", n: 505, rr: 13.1, period: "5/17~19", mW: 1, sW: 1, rrW: 1.1, tW: 1.8, score: 79, tier: "high" },
   { id: "18차", org: "채널A/리서치앤리서치", method: "ARS", n: 500, rr: 10, period: "5/17~19", mW: 1, sW: 1, rrW: 1.1, tW: 1.8, score: 79, tier: "high" },
+  { id: "19차", org: "세계일보/한국갤럽", method: "ARS", n: 502, rr: 14.4, period: "5/21~22", mW: 1, sW: 1, rrW: 1.1, tW: 1.8, score: 79, tier: "high" },
+  { id: "20차", org: "여론조사꽃", method: "ARS", n: 500, rr: 9, period: "5/21~22", mW: 1, sW: 1, rrW: 1.1, tW: 1.8, score: 79, tier: "high" },
+  { id: "21차", org: "올리서치·포털신문/비전코리아", method: "ARS", n: 533, rr: 11.8, period: "5/23", mW: 1, sW: 1, rrW: 1.1, tW: 1.8, score: 79, tier: "high" },
 ];
 
 const WEIGHT_RULES = [
@@ -342,7 +345,7 @@ export default function AboutTab() {
           <div>
             <div className="mb-8">
               <h2 className="text-xl font-bold text-[var(--text-h)] mb-1">여론조사 가중치 설계</h2>
-              <p className="text-sm text-[var(--text)]">1~18차 여론조사를 신뢰도에 비례해 가중 평균으로 통합합니다. 5/15 이후 최근 조사에 x1.8 최신성 가중치 적용.</p>
+              <p className="text-sm text-[var(--text)]">1~21차 여론조사를 신뢰도에 비례해 가중 평균으로 통합합니다. 5/15 이후 최근 조사에 x1.8 최신성 가중치 적용.</p>
             </div>
 
             <Section title="가중치 공식">
@@ -431,12 +434,12 @@ export default function AboutTab() {
                   <tbody>
                     {
     [
-      ["18~29세", 30.4, 25.4, 22.3, 21.9],
-      ["30대", 32.4, 26.7, 24.7, 16.2],
-      ["40대", 52.6, 23.2, 14.6, 9.7],
-      ["50대", 44.9, 27.7, 21.5, 5.9],
-      ["60대", 37.1, 33.3, 22.8, 6.9],
-      ["70대+", 27.8, 36.2, 26.4, 9.5],
+      ["18~29세", 29.3, 27.6, 22.3, 20.9],
+      ["30대", 33.1, 27.2, 24.1, 15.5],
+      ["40대", 53.0, 23.9, 14.1, 9.1],
+      ["50대", 44.6, 29.1, 20.7, 5.5],
+      ["60대", 36.3, 34.8, 22.8, 6.1],
+      ["70대+", 27.5, 38.2, 25.6, 8.7],
     ].map(([band, h, k, p, m]) => (
                       <tr key={band} className="border-b border-[var(--border)] last:border-0">
                         <td className="px-4 py-2.5 font-semibold text-[var(--text-h)]">{band}</td>
@@ -627,9 +630,9 @@ export default function AboutTab() {
               <div className="bg-[var(--code-bg)] border border-[var(--border)] rounded-xl divide-y divide-[var(--border)]">
                 {[
                   ["총 유권자 수",    "122,440명"],
-                  ["현재 poll_version", "18차 (채널A/리서치앤리서치 기준)"],
-                  ["마지막 업데이트", "2026-05-22"],
-                  ["지지후보 배분",   "하정우 37.3% / 한동훈 29.6% / 박민식 22.3% / 미정 10.8%"],
+                  ["현재 poll_version", "21차 (올리서치·포털신문/비전코리아 기준)"],
+                  ["마지막 업데이트", "2026-05-25"],
+                  ["지지후보 배분",   "하정우 37.0% / 한동훈 31.0% / 박민식 21.9% / 미정 10.1%"],
                   ["연령대 가중치",   "통계청 연령대별 인구 비율 반영"],
                   ["동별 가중치",    "행정안전부 유권자 명부 기준"],
                 ].map(([k, v]) => (
