@@ -10,8 +10,8 @@ const Database = require('better-sqlite3');
 
 const TOTAL       = 122440;
 const DB_PATH     = path.join(__dirname, 'personas.db');
-const POLL_VERSION = 21;
-const LAST_UPDATED = '2026-05-25';
+const POLL_VERSION = 22;
+const LAST_UPDATED = '2026-05-27';
 
 // ── 유틸 ──────────────────────────────────────────────────────────────────────
 const pick      = (arr) => arr[Math.floor(Math.random() * arr.length)];
@@ -157,55 +157,55 @@ const getBusanMayorPref = (candidate) => {
   return                              pickW(['전재수', '박형준', '미정'], [43, 37, 20]); // 미정: 3권역 중도층 접전
 };
 
-// ── ① 연령×후보 그룹 (1~21차 가중평균, 합계 122,440) ─────────────
+// ── ① 연령×후보 그룹 (1~22차 가중평균, 합계 122,440) ─────────────
 //
 // 가중공식: 조사방법×표본크기×응답률×최신성
-// 점수: 1차19 / 2차45 / 3차35 / 4차67 / 5차39 / 6차72 / 7차92 / 8차78 / 9차61 / 10차61 / 11차92 / 12차61 / 13차100 / 14차79 / 15차79 / 16차79 / 17차79 / 18차79 / 19차79 / 20차79 / 21차79
-// 비중: 1차1.3% / 2차3.1% / 3차2.4% / 4차4.6% / 5차2.7% / 6차5.0% / 7차6.3% / 8차5.4% / 9차4.2% / 10차4.2% / 11차6.3% / 12차4.2% / 13차6.9% / 14차5.4% / 15차5.4% / 16차5.4% / 17차5.4% / 18차5.4% / 19차5.4% / 20차5.4% / 21차5.4%
+// 점수: 1차19 / 2차45 / 3차35 / 4차67 / 5차39 / 6차72 / 7차92 / 8차78 / 9차61 / 10차61 / 11차92 / 12차61 / 13차100 / 14차79 / 15차79 / 16차79 / 17차79 / 18차79 / 19차79 / 20차79 / 21차79 / 22차79
+// 비중: 1차1.3% / 2차3.0% / 3차2.3% / 4차4.4% / 5차2.6% / 6차4.7% / 7차6.0% / 8차5.1% / 9차4.0% / 10차4.0% / 11차6.0% / 12차4.0% / 13차6.5% / 14차5.1% / 15차5.1% / 16차5.1% / 17차5.1% / 18차5.1% / 19차5.1% / 20차5.1% / 21차5.1% / 22차5.1%
 //
 // 연령 분포 (generate_bukgu.js 기준: 130/130/135/185/225/195 × 122440/1000):
 //   18-29세: 15,917명  30대: 15,917명  40대: 16,529명
 //   50대: 22,651명    60대: 27,549명   70+: 23,877명
 //
-// 후보 분포 (1~21차 가중평균):
-//   하정우 45,357명(37.0%)  한동훈 37,959명(31.0%)  박민식 26,801명(21.9%)  미정 12,323명(10.1%)
+// 후보 분포 (1~22차 가중평균):
+//   하정우 45,148명(36.9%)  한동훈 38,410명(31.4%)  박민식 26,899명(22.0%)  미정 11,983명(9.8%)
 //
 const ageGroups = [
-  // 18-29 (total: 15,917) — 가중평균: 하29.3 한27.6 박22.3 미20.9
-  { ageMin: 18, ageMax: 29, candidate: '하정우', count: 4660 },
-  { ageMin: 18, ageMax: 29, candidate: '한동훈', count: 4391 },
-  { ageMin: 18, ageMax: 29, candidate: '박민식', count: 3543 },
-  { ageMin: 18, ageMax: 29, candidate: '미정',    count: 3323 },
+  // 18-29 (total: 15,917) — 가중평균: 하28.7 한28.0 박22.7 미20.5
+  { ageMin: 18, ageMax: 29, candidate: '하정우', count: 4574 },
+  { ageMin: 18, ageMax: 29, candidate: '한동훈', count: 4459 },
+  { ageMin: 18, ageMax: 29, candidate: '박민식', count: 3614 },
+  { ageMin: 18, ageMax: 29, candidate: '미정',    count: 3270 },
 
-  // 30대 (total: 15,917) — 가중평균: 하33.1 한27.2 박24.1 미15.5
-  { ageMin: 30, ageMax: 39, candidate: '하정우', count: 5272 },
-  { ageMin: 30, ageMax: 39, candidate: '한동훈', count: 4335 },
-  { ageMin: 30, ageMax: 39, candidate: '박민식', count: 3836 },
-  { ageMin: 30, ageMax: 39, candidate: '미정',    count: 2474 },
+  // 30대 (total: 15,917) — 가중평균: 하32.8 한27.7 박24.3 미15.2
+  { ageMin: 30, ageMax: 39, candidate: '하정우', count: 5229 },
+  { ageMin: 30, ageMax: 39, candidate: '한동훈', count: 4409 },
+  { ageMin: 30, ageMax: 39, candidate: '박민식', count: 3865 },
+  { ageMin: 30, ageMax: 39, candidate: '미정',    count: 2414 },
 
-  // 40대 (total: 16,529) — 가중평균: 하53.0 한23.9 박14.1 미9.1
-  { ageMin: 40, ageMax: 49, candidate: '하정우', count: 8756 },
-  { ageMin: 40, ageMax: 49, candidate: '한동훈', count: 3944 },
-  { ageMin: 40, ageMax: 49, candidate: '박민식', count: 2323 },
-  { ageMin: 40, ageMax: 49, candidate: '미정',    count: 1506 },
+  // 40대 (total: 16,529) — 가중평균: 하52.4 한24.5 박14.3 미8.7
+  { ageMin: 40, ageMax: 49, candidate: '하정우', count: 8667 },
+  { ageMin: 40, ageMax: 49, candidate: '한동훈', count: 4054 },
+  { ageMin: 40, ageMax: 49, candidate: '박민식', count: 2367 },
+  { ageMin: 40, ageMax: 49, candidate: '미정',    count: 1441 },
 
-  // 50대 (total: 22,651) — 가중평균: 하44.6 한29.1 박20.7 미5.5
-  { ageMin: 50, ageMax: 59, candidate: '하정우', count: 10109 },
-  { ageMin: 50, ageMax: 59, candidate: '한동훈', count: 6602 },
-  { ageMin: 50, ageMax: 59, candidate: '박민식', count: 4691 },
-  { ageMin: 50, ageMax: 59, candidate: '미정',    count: 1249 },
+  // 50대 (total: 22,651) — 가중평균: 하44.5 한29.3 박20.9 미5.3
+  { ageMin: 50, ageMax: 59, candidate: '하정우', count: 10078 },
+  { ageMin: 50, ageMax: 59, candidate: '한동훈', count: 6629 },
+  { ageMin: 50, ageMax: 59, candidate: '박민식', count: 4737 },
+  { ageMin: 50, ageMax: 59, candidate: '미정',    count: 1207 },
 
-  // 60대 (total: 27,549) — 가중평균: 하36.3 한34.8 박22.8 미6.1
-  { ageMin: 60, ageMax: 69, candidate: '하정우', count: 9998 },
-  { ageMin: 60, ageMax: 69, candidate: '한동훈', count: 9576 },
-  { ageMin: 60, ageMax: 69, candidate: '박민식', count: 6294 },
-  { ageMin: 60, ageMax: 69, candidate: '미정',    count: 1681 },
+  // 60대 (total: 27,549) — 가중평균: 하36.4 한35.2 박22.6 미5.9
+  { ageMin: 60, ageMax: 69, candidate: '하정우', count: 10014 },
+  { ageMin: 60, ageMax: 69, candidate: '한동훈', count: 9688 },
+  { ageMin: 60, ageMax: 69, candidate: '박민식', count: 6219 },
+  { ageMin: 60, ageMax: 69, candidate: '미정',    count: 1628 },
 
-  // 70대+ (total: 23,877) — 가중평균: 하27.5 한38.2 박25.6 미8.7
-  { ageMin: 70, ageMax: 88, candidate: '하정우', count: 6562 },
-  { ageMin: 70, ageMax: 88, candidate: '한동훈', count: 9111 },
-  { ageMin: 70, ageMax: 88, candidate: '박민식', count: 6114 },
-  { ageMin: 70, ageMax: 88, candidate: '미정',    count: 2090 },
+  // 70대+ (total: 23,877) — 가중평균: 하27.6 한38.4 박25.5 미8.5
+  { ageMin: 70, ageMax: 88, candidate: '하정우', count: 6586 },
+  { ageMin: 70, ageMax: 88, candidate: '한동훈', count: 9171 },
+  { ageMin: 70, ageMax: 88, candidate: '박민식', count: 6097 },
+  { ageMin: 70, ageMax: 88, candidate: '미정',    count: 2023 },
 ];
 
 // ── ② 동별 슬롯 (22대 총선 선관위 비율 × 122,440) ───────────────────────────
@@ -335,7 +335,7 @@ const pct = (n, total) => `${(n / total * 100).toFixed(1)}%`;
 
 console.log('── 지지후보 (목표 vs 실제) ──────────────────────────────────────');
 [
-  ['하정우', 45357, '37.0'], ['한동훈', 37959, '31.0'], ['박민식', 26801, '21.9'], ['미정', 12323, '10.1'],
+  ['하정우', 45148, '36.9'], ['한동훈', 38410, '31.4'], ['박민식', 26899, '22.0'], ['미정', 11983, '9.8'],
 ].forEach(([c, t, tp]) => {
   const a = db.prepare('SELECT COUNT(*) as n FROM voters WHERE 지지후보=?').get(c).n;
   console.log(`  ${c}: ${a.toLocaleString()}명 (${pct(a, TOTAL)}) ← 목표 ${t.toLocaleString()}명 (${tp}%)`);
